@@ -9,7 +9,6 @@ class BASE(object):
     """Base class to build the ProteinStructure on top of it"""
     def __init__(self, id):
         self.id = id
-        self.childs = []
         self.__child_dict = self._get_childs_dict(self.childs)
         self.parent = None
     def _get_childs_dict(self, list_of_childs):
@@ -79,8 +78,8 @@ class ProteinStructure(BASE):
                         ·Atom
             It inherits the attributes from BASE with some changes: its childs are a list of chain objects"""
     def __init__(self, id ,struct_dict):
-        BASE.__init__(self, id)
         self.childs = self._init_chains(struct_dict)
+        BASE.__init__(self, id)
         self.mw = None
         self.parenting()
         self.get_mw()
@@ -125,8 +124,8 @@ class Chain(BASE):
         It inherits the attributes from BASE with some changes: its childs are a list of residues objects
         additionally its sequence is a ProteinSequence object"""
     def __init__(self, id, chain_dict):
-        BASE.__init__(self, id)
         self.childs = self._init_residues(chain_dict)
+        BASE.__init__(self, id)
         self.sequence = self._obtain_sequenceobj(chain_dict)
         self.mw = self.sequence.get_mw()
     def _init_residues(self, chain_dict):
@@ -156,10 +155,10 @@ class Residue(BASE):
             It inherits the attributes from BASE with some changes: its childs are a list of Atom object.
             additionally its sequence is a ProteinSequence object"""
     def __init__(self, id_tupple, res_list):
+        self.childs = self._ini_atoms(res_list)
         BASE.__init__(self, id_tupple)
         self.num = id_tupple[0]
         self.name = id_tupple[1]
-        self.childs = self._ini_atoms(res_list)
     def _ini_atoms(self, res_list):
         """Private method to generate and return the child atom objects for initialization"""
         a = []
@@ -171,10 +170,7 @@ class Residue(BASE):
         return self.childs
     def get_specific_atom(self, atom_name):
         """Returns the atom object with the specified name."""
-        for atom in self:
-            if atom.get_name() == atom_name:
-                return atom
-
+        return self[atom_name]
 class Atom(BASE):
     """Atom class in the typical hierarchical structure:
                        Structure
@@ -185,6 +181,7 @@ class Atom(BASE):
             · It has no child (it's the bottom of the hierarchy
             · It overrides the transform method with an actuall changing its coordinates."""
     def __init__(self, info):
+        self.childs = []
         BASE.__init__(self, info[1])
         self.num = info[0]
         self.name = info[1]
@@ -216,7 +213,7 @@ class Atom(BASE):
         @type tran: size 3 Numeric array
         """
         self.coords = tuple(numpy.dot(self.coords, rot) + tran)
-
+        
 def load_pdb(file_name):
     pdb = dict()
     sequence = dict()
