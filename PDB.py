@@ -3,7 +3,6 @@
 from Sequences import ProteinSequence
 from Bio.PDB import protein_letters_3to1
 import numpy
-import copy
 
 class BASE(object):
     """Base class to build the ProteinStructure on top of it"""
@@ -103,6 +102,15 @@ class ProteinStructure(BASE):
     def remove_chain(self, chain_id):
         """Removes a chain from the structure"""
         self.childs.remove(chain_id)
+    def save_fasta(self, outfile):
+        with open(outfile, "w") as out_fa:
+            n = 80
+            for chain in self:
+                out_fa.write(">%s:%s\n" %(self.get_id(), chain.get_id()))
+                seq = chain.sequence
+                seq_list = [seq[i:i+n] for i in range(0, len(seq), n)]
+                for line in seq_list:
+                    out_fa.write("%s\n"%line)
     def save_to_file(self, outfile, atom_name = None):
         """Saves the structure file in a pdb format to the outfile"""
         if type(atom_name) == str :
@@ -146,6 +154,10 @@ class Chain(BASE):
     def get_residues(self):
         """Returns a list of residues"""
         return self.childs
+    def get_sequence_str(self):
+        return self.sequence.get_sequence()
+    def get_sequence(self):
+        return self.sequence
 class Residue(BASE):
     """Residue class in the typical hierarchical structure:
                    Structure
@@ -213,7 +225,7 @@ class Atom(BASE):
         @type tran: size 3 Numeric array
         """
         self.coords = tuple(numpy.dot(self.coords, rot) + tran)
-        
+
 def load_pdb(file_name):
     pdb = dict()
     sequence = dict()
@@ -234,10 +246,7 @@ def load_pdb(file_name):
 
 if __name__ == '__main__':
     my_pdb= load_pdb('pdb/1a3n.pdb')
-    my_otherpdb = copy.deepcopy(my_pdb)
-    my_otherpdb.transform(rot = numpy.array([[0,-1,0],
-                                            [1,0,0],
-                                            [0,0,1]]),
-                          tran=numpy.array([0,0,0]))
-    my_otherpdb.save_to_file('pdb/1a3n_tranformado.pdb', ['CA', 'CB'])
-    print(my_pdb > my_otherpdb)
+    my_pdb.save_fasta('pdb/1a3n.fa')
+
+
+    print("stop")
