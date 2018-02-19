@@ -3,12 +3,13 @@
 from Sequences import ProteinSequence
 from Bio.PDB import protein_letters_3to1
 import numpy
+from sys import stderr
 
 class BASE(object):
     """Base class to build the ProteinStructure on top of it"""
     def __init__(self, id):
         self.id = id
-        self.__child_dict = self._get_childs_dict(self.childs)
+        self.child_dict = self._get_childs_dict(self.childs)
         self.parent = None
     def _get_childs_dict(self, list_of_childs):
         """Private method to generate a dict of pointers to the childs (just to iterate better if needed a dict)"""
@@ -37,10 +38,10 @@ class BASE(object):
             yield child
     def __getitem__(self, id):
         """Return the child with given id."""
-        return self.__child_dict[id]
+        return self.child_dict[id]
     def __contains__(self, id):
         """True if there is a child element with the given id."""
-        return (id in self.__child_dict)
+        return (id in self.child_dict)
     def parenting(self):
         """Sets recursively the parents of the childs as self"""
         for child in self.childs:
@@ -55,7 +56,7 @@ class BASE(object):
     def get_parent(self):
         """Return the id."""
         return self.parent
-    def transform(self, rot, tran):
+    def transform(self, rot = numpy.array([[1,0,0],[0,1,0],[0,0,1]]), tran = numpy.array([0,0,0])):
         """
         Apply rotation and translation to the atomic coordinates.
         It goes all until Atoms and it transforms them. (this method
@@ -82,6 +83,7 @@ class ProteinStructure(BASE):
         self.mw = None
         self.parenting()
         self.get_mw()
+        self.find_gaps()
     def _init_chains(self, pdb_file):
         """Private method to generate and return the child chain objects for initialization"""
         c = []
@@ -92,7 +94,7 @@ class ProteinStructure(BASE):
                 if line.startswith('ATOM'):
                     cols = line.split()
                     pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
-                        (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8]))))
+                        (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8])), float(cols[9]), float(cols[10])))
         for chain in pdb:
             c.append(Chain(chain, pdb[chain]))
         return c
@@ -110,6 +112,17 @@ class ProteinStructure(BASE):
     def remove_chain(self, chain_id):
         """Removes a chain from the structure"""
         self.childs.remove(chain_id)
+    def find_gaps(self):
+        for chain in self:
+            current_residue = chain.childs[0].num #current_residue is initialized as the first residue - 1, so the first one is
+            if current_residue != str(1):
+                stderr.write("WARNING!: Chain %s in pdb %s doesn't start in residue 1\n" %(chain.get_id(), self.get_id()))
+            for residue in chain:
+                if residue.num != current_residue:
+                    stderr.write("WARNING!: Gap found between residue %s and residue %s in the chain %s of the pdb %s\n" %(
+                        current_residue, residue.num, chain.get_id(), self.get_id()))
+                current_residue = str(int(residue.num) + 1)
+
     def save_fasta(self, outfile):
         with open(outfile, "w") as out_fa:
             n = 80
@@ -119,18 +132,22 @@ class ProteinStructure(BASE):
                 seq_list = [seq[i:i+n] for i in range(0, len(seq), n)]
                 for line in seq_list:
                     out_fa.write("%s\n"%line)
-    def save_to_file(self, outfile, atom_name = None):
+    def save_to_file(self, outfile, atom_name = None, chain_name = None):
         """Saves the structure file in a pdb format to the outfile"""
         if type(atom_name) == str :
             atom_name = [atom_name]
         with open(outfile, "w") as out_pdb:
             for chain in self:
+                if chain.get_id() not in chain_name or chain_name is None:
+                    continue
                 for residue in chain:
                     for atom in residue:
                         if atom_name is None or atom.get_name() in atom_name:
-                            out_pdb.write("%-6s%5s %4s %3s %s%4s    %8s%8s%8s\n" %('ATOM', atom.num, atom.name,
-                                                                               residue.name, chain.id, residue.num,
-                                                                               atom.coords[0], atom.coords[1], atom.coords[2]))
+                            out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f\n" %('ATOM', atom.num, atom.name,
+                                                            residue.name, chain.id, residue.num,round(atom.coords[0],3),
+                                                            round(atom.coords[1],3), round(atom.coords[2],3),
+                                                            round(atom.occupancy, 3), round(atom.temp_factor, 3)))
+                            #out_pdb.write("{:6s}{:5s} {:^4s}{:1s}{:3s} {:1s}{:4s}{:1s}   {:8s}{:8s}{:8s}{:6s}{:6s}\n".format('ATOM', atom.num, atom.name, residue.name, chain.id, residue.num,round(atom.coords[0],3), round(atom.coords[1],3), round(atom.coords[2],3), round(atom.occupancy, 2), round(atom.temp_factor, 2)))
 class Chain(BASE):
     """Chain class in the typical hierarchical structure:
                Structure
@@ -166,6 +183,13 @@ class Chain(BASE):
         return self.sequence.get_sequence()
     def get_sequence(self):
         return self.sequence
+    def renumber(self, ini):
+        i = ini
+        for residue in self:
+            residue.num = i
+            residue.id = (str(i), residue.name)
+            i += 1
+        self.child_dict = self._get_childs_dict(self.childs)
 class Residue(BASE):
     """Residue class in the typical hierarchical structure:
                    Structure
@@ -206,6 +230,8 @@ class Atom(BASE):
         self.num = info[0]
         self.name = info[1]
         self.coords = info[2]
+        self.occupancy = info[3]
+        self.temp_factor = info[4]
     def __sub__(self, other):
         """
         Calculate distance between two atoms.
@@ -224,7 +250,7 @@ class Atom(BASE):
     def get_coords(self):
         """Returns a list of coords"""
         return self.coords
-    def transform(self, rot = numpy.array([[0,0,0],[0,0,0],[0,0,0]]), tran = numpy.array([0,0,0])):
+    def transform(self, rot = numpy.array([[1,0,0],[0,1,0],[0,0,1]]), tran = numpy.array([0,0,0])):
         """Apply rotation and translation to the atomic coordinates.
         @param rot: A right multiplying rotation matrix
         @type rot: 3x3 Numeric array
@@ -233,17 +259,6 @@ class Atom(BASE):
         @type tran: size 3 Numeric array
         """
         self.coords = tuple(numpy.dot(self.coords, rot) + tran)
-
-def load_pdb(file_name):
-    pdb = dict()
-    with open(file_name, "r") as file:
-        for line in file:
-            line = line.rstrip()
-            if line.startswith('ATOM'):
-                cols = line.split()
-                pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
-                    ( cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8]))))
-        return ProteinStructure( file_name , pdb)
 
 if __name__ == '__main__':
     my_pdb = ProteinStructure('1a3n', 'pdb/1a3n.pdb')
