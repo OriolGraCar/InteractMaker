@@ -1,6 +1,6 @@
 #!/bin/env python3
 
-from Sequences import ProteinSequence
+from Sequences import *
 from Bio.PDB import protein_letters_3to1
 import numpy
 from sys import stderr
@@ -87,12 +87,20 @@ class ProteinStructure(BASE):
     def _init_chains(self, pdb_file):
         """Private method to generate and return the child chain objects for initialization"""
         c = []
+        cols = list()
         pdb = dict()
         with open(pdb_file, "r") as file:
             for line in file:
                 line = line.rstrip()
                 if line.startswith('ATOM'):
-                    cols = line.split()
+                    if len(line) > 64:
+                        cols = [line[:6].strip(), line[6:11].strip(), line[12:16].strip(), line[17:20].strip(),
+                                line[21].strip(), line[22:26].strip(), line[30:38].strip(), line[38:46].strip(),
+                                line[46:54].strip(), line[54:60].strip(), line[60:66].strip()]
+                    elif len(line) > 53:
+                        cols = [line[:6].strip(), line[6:11].strip(), line[12:16].strip(), line[17:20].strip(),
+                                line[21].strip(), line[22:26].strip(), line[30:38].strip(), line[38:46].strip(),
+                                line[46:54].strip()]
                     if len(cols) > 10: # include Temperature Factor
                         pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
                         (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8])), float(cols[9]), float(cols[10])))
@@ -117,23 +125,24 @@ class ProteinStructure(BASE):
         """Returns a list of chains"""
         return self.childs
     def get_residues(self):
-        """Returns a generator for all structure residues"""
+        """Returns a list with all structure residues"""
         r = []
         for chain in self.get_chains():
             for res in chain:
                 r.append(res)
         return r
     def get_atoms(self):
-        """Returns a generator for all structure atoms"""
+        """Returns a list with all structure atoms"""
         a = []
         for r in self.get_residues():
             for aa in r:
                 a.append(aa)
         return a
     def remove_chain(self, chain_id):
-        """Removes a chain from the structure"""
+        """Removes a chain from the structure."""
         self.childs.remove(chain_id)
     def find_gaps(self):
+        """Check if Structure has gaps in its chains. Only looks if the residu num is consecutively."""
         for chain in self:
             current_residue = chain.childs[0].num #current_residue is initialized as the first residue - 1, so the first one is
             if current_residue != str(1):
@@ -143,8 +152,27 @@ class ProteinStructure(BASE):
                     stderr.write("WARNING!: Gap found between residue %s and residue %s in the chain %s of the pdb %s\n" %(
                         current_residue, residue.num, chain.get_id(), self.get_id()))
                 current_residue = str(int(residue.num) + 1)
+    def find_clash(self):
+        """
+        Check every pair of backbone atoms of diferent chains to see if they clash.
 
+        A clash is defined when the distance between two atoms is greater than the sum of their VanderWaal radii
+        """
+        vwr = {'C':1.8, 'O':1.4, 'N':1.7, 'S':2, 'CA': 1.8}
+        bb = ('C', 'O', 'N', 'CA')
+        for chain1 in self:
+            for chain2 in self:
+                if chain1 is chain2:
+                    break
+                for atom1 in chain1.iter_atoms():
+                    for atom2 in chain2.iter_atoms():
+                        if atom1.get_name() in bb and atom2.get_name() in bb:
+                            clash = vwr[atom1.get_name()] + vwr[atom2.get_name()] - (atom1-atom2)
+                            if clash > 0:
+                                stderr.write('WARNING!: The atom num %s of the chain %s clashes with the atom %s of the chain %s from %s\n' %(atom1.num, chain1.get_id(), atom2.num, chain2.get_id(), self.id))
+                                stderr.write('\t    A %s clashes with a %s in a %s A distance\n' %(atom1.get_name(),atom2.get_name(), atom1-atom2))
     def save_fasta(self, outfile):
+        """Saves the sequence of all the chains in the pdb """
         with open(outfile, "w") as out_fa:
             n = 80
             for chain in self:
@@ -154,7 +182,12 @@ class ProteinStructure(BASE):
                 for line in seq_list:
                     out_fa.write("%s\n"%line)
     def save_to_file(self, outfile, atom_name = None, chain_name = None):
-        """Saves the structure file in a pdb format to the outfile"""
+        """
+        Saves the structure file in a pdb format to the outfile
+
+        IF @atom_name given : it will select only the especified atoms.
+        IF @chain_name given: it will select only the especified chains.
+        """
         if type(atom_name) == str :
             atom_name = [atom_name]
         with open(outfile, "w") as out_pdb:
@@ -198,20 +231,47 @@ class Chain(BASE):
     def _obtain_sequenceobj(self, chain_dict):
         """Private method to generate the ProteinSequence object for initialization"""
         seq = ''
+        dna = {'DA' : 'A', 'DC': 'C', 'DG': 'G', 'DT': 'T'}
+        rna = {'A': 'A', 'C': 'C', 'G': 'G', 'U': 'U'}
+        flag = 'prot'
         for res_ky in chain_dict:
-            seq += protein_letters_3to1[res_ky[1]]
-        return ProteinSequence(self.id, seq)
+            try:
+                seq += protein_letters_3to1[res_ky[1]]
+            except:
+                if res_ky[1] in dna:
+                    seq += dna[res_ky[1]]
+                    flag = 'dna'
+                elif res_ky[1] in rna:
+                    seq += rna[res_ky[1]]
+                    flag = 'rna'
+        if flag == 'prot':
+            return ProteinSequence(self.id, seq)
+        elif flag == 'dna':
+            return DNASequence(self.id, seq)
+        elif flag == 'rna':
+            return RNASequence(self.id, seq)
     def get_mw(self):
         """Return molecular weight"""
         return self.mw
     def get_residues(self):
         """Returns a list of residues"""
         return self.childs
+    def iter_atoms(self):
+        """Returns a generator of residues"""
+        for residue in self.get_residues():
+            for atom in residue:
+                yield atom
     def get_sequence_str(self):
+        """Returns string with the chain sequence."""
         return self.sequence.get_sequence()
     def get_sequence(self):
+        """Returns sequence objct."""
         return self.sequence
     def renumber(self, ini):
+        """
+        Renumbers the residues of the chain starting on the @ini and the others consecutively
+        WARNING!: It will mask the gaps.
+        """
         i = ini
         for residue in self:
             residue.num = i
@@ -289,6 +349,7 @@ class Atom(BASE):
         """Returns the occupancy of the atom"""
         return self.occupancy
     def get_temperature_factor(self):
+        """Returns the temperature factor of the atom"""
         return self.temp_factor
     def transform(self, rot = numpy.array([[1,0,0],[0,1,0],[0,0,1]]), tran = numpy.array([0,0,0])):
         """Apply rotation and translation to the atomic coordinates.
