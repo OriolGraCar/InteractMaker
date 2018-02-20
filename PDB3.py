@@ -19,7 +19,7 @@ class BASE(object):
         return d_child
     def __len__(self):
         """Return the number of childs"""
-        return len(self.child)
+        return len(self.childs)
     def __eq__(self, other):
         if self.__class__ == other.__class__:
             return self.get_id() == other.get_id()
@@ -93,8 +93,15 @@ class ProteinStructure(BASE):
                 line = line.rstrip()
                 if line.startswith('ATOM'):
                     cols = line.split()
-                    pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
+                    if len(cols) > 10: # include Temperature Factor
+                        pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
                         (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8])), float(cols[9]), float(cols[10])))
+                    elif len(cols) > 9: # include atom occupancy
+                        pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
+                            (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8])), float(cols[9])))
+                    else: # standart pdb just with coordinates
+                        pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
+                            (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8]))))
         for chain in pdb:
             c.append(Chain(chain, pdb[chain]))
         return c
@@ -109,6 +116,20 @@ class ProteinStructure(BASE):
     def get_chains(self):
         """Returns a list of chains"""
         return self.childs
+    def get_residues(self):
+        """Returns a generator for all structure residues"""
+        r = []
+        for chain in self.get_chains():
+            for res in chain:
+                r.append(res)
+        return r
+    def get_atoms(self):
+        """Returns a generator for all structure atoms"""
+        a = []
+        for r in self.get_residues():
+            for aa in r:
+                a.append(aa)
+        return a
     def remove_chain(self, chain_id):
         """Removes a chain from the structure"""
         self.childs.remove(chain_id)
@@ -138,16 +159,21 @@ class ProteinStructure(BASE):
             atom_name = [atom_name]
         with open(outfile, "w") as out_pdb:
             for chain in self:
-                if chain.get_id() not in chain_name or chain_name is None:
+                if not chain_name is None and chain.get_id() not in chain_name:
                     continue
                 for residue in chain:
                     for atom in residue:
                         if atom_name is None or atom.get_name() in atom_name:
-                            out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f\n" %('ATOM', atom.num, atom.name,
+                            if atom.occupancy is not None and atom.temp_factor is not None:
+                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f\n" %('ATOM', atom.num, atom.name,
                                                             residue.name, chain.id, residue.num,round(atom.coords[0],3),
-                                                            round(atom.coords[1],3), round(atom.coords[2],3),
-                                                            round(atom.occupancy, 3), round(atom.temp_factor, 3)))
+                                                            atom.coords[1], atom.coords[2],atom.occupancy, atom.temp_factor))
+                            else:
+                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f\n" % ('ATOM', atom.num, atom.name,
+                                                            residue.name, chain.id, residue.num, round(atom.coords[0], 3),
+                                                            atom.coords[1], atom.coords[2]))
                             #out_pdb.write("{:6s}{:5s} {:^4s}{:1s}{:3s} {:1s}{:4s}{:1s}   {:8s}{:8s}{:8s}{:6s}{:6s}\n".format('ATOM', atom.num, atom.name, residue.name, chain.id, residue.num,round(atom.coords[0],3), round(atom.coords[1],3), round(atom.coords[2],3), round(atom.occupancy, 2), round(atom.temp_factor, 2)))
+                out_pdb.write("TER\n")
 class Chain(BASE):
     """Chain class in the typical hierarchical structure:
                Structure
@@ -161,6 +187,8 @@ class Chain(BASE):
         BASE.__init__(self, id)
         self.sequence = self._obtain_sequenceobj(chain_dict)
         self.mw = self.sequence.get_mw()
+    def __str__(self):
+        return self.sequence.get_sequence()
     def _init_residues(self, chain_dict):
         """Private method to generate and return the child residue objects for initialization"""
         r = []
@@ -230,8 +258,12 @@ class Atom(BASE):
         self.num = info[0]
         self.name = info[1]
         self.coords = info[2]
-        self.occupancy = info[3]
-        self.temp_factor = info[4]
+        self.occupancy = None
+        self.temp_factor = None
+        if len(info) > 4:
+            self.temp_factor = info[4]
+        if len(info) > 3:
+            self.occupancy = info[3]
     def __sub__(self, other):
         """
         Calculate distance between two atoms.
@@ -240,7 +272,7 @@ class Atom(BASE):
             · distance = atom1-atom2
         """
         if self.__class__ == other.__class__:
-            diff = self.coords - other.coords
+            diff = numpy.array(self.coords) - numpy.array(other.coords)
             return numpy.sqrt(numpy.dot(diff, diff))
         else:
             raise ArithmeticError('Impossible to calculate the distance from an Atom to a %s' %other.__class__.__name__)
@@ -248,8 +280,16 @@ class Atom(BASE):
         """Return atom name."""
         return self.name
     def get_coords(self):
-        """Returns a list of coords"""
+        """Returns a tupple of coords"""
         return self.coords
+    def get_coord(self):
+        """Returns a numpy array of coords"""
+        return numpy.array(self.coords)
+    def get_occupancy(self):
+        """Returns the occupancy of the atom"""
+        return self.occupancy
+    def get_temperature_factor(self):
+        return self.temp_factor
     def transform(self, rot = numpy.array([[1,0,0],[0,1,0],[0,0,1]]), tran = numpy.array([0,0,0])):
         """Apply rotation and translation to the atomic coordinates.
         @param rot: A right multiplying rotation matrix
@@ -261,7 +301,4 @@ class Atom(BASE):
         self.coords = tuple(numpy.dot(self.coords, rot) + tran)
 
 if __name__ == '__main__':
-    my_pdb = ProteinStructure('1a3n', 'pdb/1a3n.pdb')
-
-
-    print("stop")
+    '''El sitio de las pruebas <3'''
