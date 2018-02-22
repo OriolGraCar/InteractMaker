@@ -2,8 +2,10 @@
 
 from Sequences import *
 from Bio.PDB import protein_letters_3to1
+import copy
 import numpy
 from sys import stderr
+from string import ascii_uppercase as ltr
 
 class BASE(object):
     """Base class to build the ProteinStructure on top of it"""
@@ -87,6 +89,11 @@ class ProteinStructure(BASE):
     def _init_chains(self, pdb_file):
         """Private method to generate and return the child chain objects for initialization"""
         c = []
+        pdb = self._read_pdb(pdb_file)
+        for chain in pdb:
+            c.append(Chain(chain, pdb[chain]))
+        return c
+    def _read_pdb(self, pdb_file):
         cols = list()
         pdb = dict()
         with open(pdb_file, "r") as file:
@@ -110,9 +117,7 @@ class ProteinStructure(BASE):
                     else: # standart pdb just with coordinates
                         pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
                             (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8]))))
-        for chain in pdb:
-            c.append(Chain(chain, pdb[chain]))
-        return c
+        return pdb
     def get_mw(self):
         """Returns the molecular weight as the sum of the molecular weight of it's chains"""
         if self.mw is None:
@@ -131,6 +136,19 @@ class ProteinStructure(BASE):
             for res in chain:
                 r.append(res)
         return r
+    def add_chain(self, nw_chain, cid):
+        if cid in self.child_dict:
+            for letter in ltr:
+                if letter not in self.child_dict:
+                    nw_id = letter
+            stderr.write('WARNING! : You have tried to add a chain to %s with an already existing Chain id. We will try to change it to %s.\n' %(self.id, nw_id))
+            self.add_chain(nw_chain, nw_id)
+        else:
+            my_nw_chain = copy.deepcopy(nw_chain)
+            my_nw_chain.id = cid
+            self.childs.append(my_nw_chain)
+            self.child_dict = self._get_childs_dict(self.childs)
+
     def get_atoms(self):
         """Returns a list with all structure atoms"""
         a = []
@@ -188,6 +206,7 @@ class ProteinStructure(BASE):
         IF @atom_name given : it will select only the especified atoms.
         IF @chain_name given: it will select only the especified chains.
         """
+        line_num = 1
         if type(atom_name) == str :
             atom_name = [atom_name]
         with open(outfile, "w") as out_pdb:
@@ -198,14 +217,15 @@ class ProteinStructure(BASE):
                     for atom in residue:
                         if atom_name is None or atom.get_name() in atom_name:
                             if atom.occupancy is not None and atom.temp_factor is not None:
-                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f\n" %('ATOM', atom.num, atom.name,
+                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f\n" %('ATOM', line_num, atom.name,
                                                             residue.name, chain.id, residue.num,round(atom.coords[0],3),
                                                             atom.coords[1], atom.coords[2],atom.occupancy, atom.temp_factor))
                             else:
-                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f\n" % ('ATOM', atom.num, atom.name,
+                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f\n" % ('ATOM', line_num, atom.name,
                                                             residue.name, chain.id, residue.num, round(atom.coords[0], 3),
                                                             atom.coords[1], atom.coords[2]))
                             #out_pdb.write("{:6s}{:5s} {:^4s}{:1s}{:3s} {:1s}{:4s}{:1s}   {:8s}{:8s}{:8s}{:6s}{:6s}\n".format('ATOM', atom.num, atom.name, residue.name, chain.id, residue.num,round(atom.coords[0],3), round(atom.coords[1],3), round(atom.coords[2],3), round(atom.occupancy, 2), round(atom.temp_factor, 2)))
+                        line_num +=1
                 out_pdb.write("TER\n")
 class Chain(BASE):
     """Chain class in the typical hierarchical structure:
@@ -278,6 +298,22 @@ class Chain(BASE):
             residue.id = (str(i), residue.name)
             i += 1
         self.child_dict = self._get_childs_dict(self.childs)
+    def interacting_residues(self, other_chain):
+        interacting = list()
+        for res in self:
+            for other_res in other_chain:
+                b = None
+                if len(interacting) > 0 and interacting[len(interacting)-1] == res.num:
+                    break
+                for atom in res:
+                    if b:
+                        break
+                    for other_atom in other_res:
+                        if atom-other_atom < 4:
+                            interacting.append(res.num)
+                            b = 1
+                            break
+        return interacting
 class Residue(BASE):
     """Residue class in the typical hierarchical structure:
                    Structure
@@ -297,6 +333,8 @@ class Residue(BASE):
         for aa in res_list:
             a.append(Atom(aa))
         return a
+    def backbone(self):
+        return [self['C'], self['N'], self['O'], self['CA']]
     def get_atoms(self):
         """Returns a list of atoms"""
         return self.childs
@@ -341,7 +379,7 @@ class Atom(BASE):
         return self.name
     def get_coords(self):
         """Returns a tupple of coords"""
-        return self.coords
+        return tuple(self.coords)
     def get_coord(self):
         """Returns a numpy array of coords"""
         return numpy.array(self.coords)
@@ -359,7 +397,7 @@ class Atom(BASE):
         @param tran: the translation vector
         @type tran: size 3 Numeric array
         """
-        self.coords = tuple(numpy.dot(self.coords, rot) + tran)
+        self.coords = numpy.dot(self.coords, rot) + tran
 
 if __name__ == '__main__':
     '''El sitio de las pruebas <3'''
