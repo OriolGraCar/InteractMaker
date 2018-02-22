@@ -37,9 +37,10 @@ def superimpose_pdb_by_chain(chain_fix, chain_mov):
 
 if __name__== '__main__' :
     pdb_list = list()
-    id_list = ['AC', 'AB', 'AD', 'BC', 'DC']
+    id_list = ['AC', 'AB', 'DC', 'AD', 'BC']
     sqs = dict()
     sup = Superimposer()
+    new_pdb = None
     for id in id_list:
         pdb_list.append(PS(id, 'pdb/%s.pdb' %id))
     for i in range(10):
@@ -53,6 +54,13 @@ if __name__== '__main__' :
                         if chain1.get_id() == chain2.get_id():
                             superimpose_pdb_by_chain(chain1, chain2)
     for pdb in pdb_list:
-        pdb.save_to_file('pdb/%s_fit.pdb'%pdb.get_id())
-
+        for chain in pdb:
+            if new_pdb is None:
+                new_pdb = pdb
+                break
+            else:
+                new_pdb.add_chain(chain, chain.get_id())
+    new_pdb.save_to_file('pdb/junto.pdb')
+    print(new_pdb['A'].interacting_residues(new_pdb['B']))
+    print(new_pdb['B'].interacting_residues(new_pdb['A']))
     print('THE END')
