@@ -26,23 +26,60 @@ def find_common_atoms(chain_fix, chain_mov, bb = True):
     #print(format_alignment(*alignment[0]))
     return atoms_fix, atoms_mov
 
-
 def superimpose_pdb_by_chain(chain_fix, chain_mov):
     sup = Superimposer()
     atoms_fix, atoms_mov = find_common_atoms(chain_fix, chain_mov)
     sup.set_atoms(atoms_fix, atoms_mov)
     chain_mov.parent.transform(rot = sup.rotran[0], tran = sup.rotran[1])
 
+def all_interactions(pdb_list):
+    r = dict()
+    for pdb in pdb_list:
+        for chain in pdb:
+            for other_chain in pdb:
+                if chain is not other_chain:
+                    r.setdefault(chain.get_id(), dict())[tuple(chain.interacting_residues(other_chain))] = other_chain
+    return r
+def construct_macrocomplex(PDB_list):
+    interactions_dict = all_interactions(PDB_list)
+    new_pdb = PDB_list[0]
+    closed = True
+    while closed:
+        c = 0
+        for chain in new_pdb:
+            intermedias = list()
+            for other_chain in new_pdb:
+                if chain is not other_chain:
+                    intermedias.append(tuple(chain.interacting_residues(other_chain)))
+            for border in interactions_dict[chain.get_id()]:
+                if border not in intermedias:
+                    for i in range(100):
+                        superimpose_pdb_by_chain(chain,interactions_dict[chain.get_id()][border].parent[chain.get_id()])
+                    new_pdb.add_chain(interactions_dict[chain.get_id()][border], interactions_dict[chain.get_id()][border].get_id())
+                    intermedias.append(border)
+                if intermedias.sort() == list(interactions_dict[chain.get_id()]).sort() and \
+                                len(intermedias) == len(interactions_dict[chain.get_id()]) and \
+                                intermedias.sort(reverse=True) == list(interactions_dict[chain.get_id()]).sort(reverse=True):
+                    c += 1
+                    break
+            if intermedias.sort() == list(interactions_dict[chain.get_id()]).sort() and \
+                            len(intermedias) == len(interactions_dict[chain.get_id()]) and \
+                            intermedias.sort(reverse=True) == list(interactions_dict[chain.get_id()]).sort(reverse=True):
+                c += 1
+        if c == len(new_pdb):
+            closed = False
 
 
 if __name__== '__main__' :
     pdb_list = list()
     id_list = ['AC', 'AB', 'DC', 'AD', 'BC']
     sqs = dict()
-    sup = Superimposer()
-    new_pdb = None
     for id in id_list:
         pdb_list.append(PS(id, 'pdb/%s.pdb' %id))
+    new_pdb = construct_macrocomplex(pdb_list)
+
+
+    '''
     for i in range(10):
         shuffle(pdb_list)
         for pdb1 in pdb_list:
@@ -60,7 +97,13 @@ if __name__== '__main__' :
                 break
             else:
                 new_pdb.add_chain(chain, chain.get_id())
+    new_pdb.remove_chain(new_pdb['Z'])
+    new_pdb.remove_chain(new_pdb['Y'])
+    new_pdb.remove_chain(new_pdb['X'])
+    new_pdb.remove_chain(new_pdb['W'])
+    new_pdb.remove_chain(new_pdb['V'])
+    new_pdb.remove_chain(new_pdb['U'])
     new_pdb.save_to_file('pdb/junto.pdb')
-    print(new_pdb['A'].interacting_residues(new_pdb['B']))
-    print(new_pdb['B'].interacting_residues(new_pdb['A']))
+    new_pdb.get_mw()
+    '''
     print('THE END')
