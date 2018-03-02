@@ -5,7 +5,11 @@ from Bio.PDB import protein_letters_3to1
 import copy
 import numpy
 from sys import stderr
-from string import ascii_uppercase as ltr
+
+ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
+ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ltr = ascii_uppercase + ascii_lowercase
+
 
 class BASE(object):
     """Base class to build the ProteinStructure on top of it"""
@@ -42,7 +46,7 @@ class BASE(object):
         """Return the child with given id."""
         return self.child_dict[id]
     def __contains__(self, id):
-        """True if there is a child element with the given id."""
+        """True if there is a child element with the given id"""
         return (id in self.child_dict)
     def parenting(self):
         """Sets recursively the parents of the childs as self"""
@@ -53,10 +57,10 @@ class BASE(object):
         self.parent = papa
         self.parenting()
     def get_id(self):
-        """Return the id."""
+        """Return the id"""
         return self.id
     def get_parent(self):
-        """Return the id."""
+        """Return the parent object (one step higher in the hierarchy"""
         return self.parent
     def transform(self, rot = numpy.array([[1,0,0],[0,1,0],[0,0,1]]), tran = numpy.array([0,0,0])):
         """
@@ -120,11 +124,10 @@ class ProteinStructure(BASE):
         return pdb
     def get_mw(self):
         """Returns the molecular weight as the sum of the molecular weight of it's chains"""
-        if self.mw is None:
-            mweight = 0
-            for child in self:
-                mweight += child.get_mw()
-            self.mw = round(mweight, 4)
+        mweight = 0
+        for child in self:
+            mweight += child.get_mw()
+        self.mw = round(mweight, 4)
         return self.mw
     def get_chains(self):
         """Returns a list of chains"""
@@ -137,10 +140,18 @@ class ProteinStructure(BASE):
                 r.append(res)
         return r
     def add_chain(self, nw_chain, cid):
+        """
+        Adds the input chain object to the Structure.
+
+         It does a deep copy not to mess with the original chain object.
+         If the given chain id (cid) is already in use by another chain in
+          the structure it will look for an alternative name.
+         """
         if cid in self.child_dict:
             for letter in ltr:
                 if letter not in self.child_dict:
                     nw_id = letter
+                    break
             stderr.write('WARNING! : You have tried to add a chain to %s with an already existing Chain id. We will try to change it to %s.\n' %(self.id, nw_id))
             self.add_chain(nw_chain, nw_id)
         else:
@@ -148,7 +159,6 @@ class ProteinStructure(BASE):
             my_nw_chain.id = cid
             self.childs.append(my_nw_chain)
             self.child_dict = self._get_childs_dict(self.childs)
-
     def get_atoms(self):
         """Returns a list with all structure atoms"""
         a = []
@@ -159,6 +169,7 @@ class ProteinStructure(BASE):
     def remove_chain(self, chain_id):
         """Removes a chain from the structure."""
         self.childs.remove(chain_id)
+        self.child_dict = self._get_childs_dict(self.childs)
     def find_gaps(self):
         """Check if Structure has gaps in its chains. Only looks if the residu num is consecutively."""
         for chain in self:
@@ -298,7 +309,15 @@ class Chain(BASE):
             residue.id = (str(i), residue.name)
             i += 1
         self.child_dict = self._get_childs_dict(self.childs)
-    def interacting_residues(self, other_chain):
+    def interacting_residues(self, other_chain, dist = 4):
+        """
+        Iterates through all the possible pair of atoms (one from self and the other from other_chain)
+        and returns a list of the residue numbers from self that interact with other_chain.
+
+        :param other_chain: a chain object to be compared with
+        :param dist: distance of interaction in Armstrong (default = 4)
+        :return: List of intreacting residues
+        """
         interacting = list()
         for res in self:
             for other_res in other_chain:
@@ -309,7 +328,7 @@ class Chain(BASE):
                     if b:
                         break
                     for other_atom in other_res:
-                        if atom-other_atom < 4:
+                        if atom-other_atom < dist:
                             interacting.append(res.num)
                             b = 1
                             break
@@ -334,6 +353,7 @@ class Residue(BASE):
             a.append(Atom(aa))
         return a
     def backbone(self):
+        """Returns a list with the backbone atoms of the residue (Carbon, Nitrogen, Oxigen and Alfa Carbon)"""
         return [self['C'], self['N'], self['O'], self['CA']]
     def get_atoms(self):
         """Returns a list of atoms"""
