@@ -139,26 +139,33 @@ class ProteinStructure(BASE):
             for res in chain:
                 r.append(res)
         return r
-    def add_chain(self, nw_chain, cid):
+    def add_chain(self, nw_chain, cid, track_name = False):
         """
-        Adds the input chain object to the Structure.
+            Adds the input chain object to the Structure.
 
          It does a deep copy not to mess with the original chain object.
          If the given chain id (cid) is already in use by another chain in
           the structure it will look for an alternative name.
-         """
+
+        :param nw_chain: Chain object to add to the structure object
+        :param cid: chain id you want to give
+        :param track_name(Boolean): default False;
+        :return: if track_name = True returns the id given to the new chain.
+        """
         if cid in self.child_dict:
             for letter in ltr:
                 if letter not in self.child_dict:
                     nw_id = letter
                     break
-            stderr.write('WARNING! : You have tried to add a chain to %s with an already existing Chain id. We will try to change it to %s.\n' %(self.id, nw_id))
-            self.add_chain(nw_chain, nw_id)
+            stderr.write('WARNING!: Tried to add a chain to %s with an already existing Chain id (%s). I will try to change it to %s.\n' %(cid , self.id, nw_id))
+            cid = self.add_chain(nw_chain, nw_id, track_name= track_name)
         else:
             my_nw_chain = copy.deepcopy(nw_chain)
             my_nw_chain.id = cid
             self.childs.append(my_nw_chain)
             self.child_dict = self._get_childs_dict(self.childs)
+        if track_name:
+            return cid
     def get_atoms(self):
         """Returns a list with all structure atoms"""
         a = []
@@ -166,6 +173,9 @@ class ProteinStructure(BASE):
             for aa in r:
                 a.append(aa)
         return a
+    def restablish_dict(self):
+        '''To use from outside.. does the same as self.child_dict = _get_childs_dict'''
+        self.child_dict = self._get_childs_dict(self.childs)
     def remove_chain(self, chain_id):
         """Removes a chain from the structure."""
         self.childs.remove(chain_id)
