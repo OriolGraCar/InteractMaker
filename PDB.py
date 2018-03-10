@@ -342,7 +342,8 @@ class Chain(BASE):
                             interacting.append(res.num)
                             b = 1
                             break
-        return interacting
+        if len(interacting)>0:
+            return interacting
 class Residue(BASE):
     """Residue class in the typical hierarchical structure:
                    Structure
