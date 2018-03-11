@@ -8,7 +8,8 @@ from sys import stderr
 
 ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
 ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-ltr = ascii_uppercase + ascii_lowercase
+numbers = '01234567890'
+ltr = ascii_uppercase + ascii_lowercase + numbers
 
 
 class BASE(object):
@@ -164,6 +165,7 @@ class ProteinStructure(BASE):
             my_nw_chain.id = cid
             self.childs.append(my_nw_chain)
             self.child_dict = self._get_childs_dict(self.childs)
+            self.parenting()
         if track_name:
             return cid
     def get_atoms(self):
@@ -297,6 +299,10 @@ class Chain(BASE):
     def get_residues(self):
         """Returns a list of residues"""
         return self.childs
+    def get_residue_by_num(self, number):
+        for res in self:
+            if res.num == number:
+                return res
     def iter_atoms(self):
         """Returns a generator of residues"""
         for residue in self.get_residues():
