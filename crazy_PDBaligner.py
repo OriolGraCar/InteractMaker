@@ -41,59 +41,78 @@ def superimpose_pdb_by_chain(chain_fix, chain_mov):
     atoms_fix, atoms_mov = find_common_atoms(chain_fix, chain_mov)
     sup.set_atoms(atoms_fix, atoms_mov)
     chain_mov.parent.transform(rot = sup.rotran[0], tran = sup.rotran[1])
+
+def new_unused_id(used_ids):
+    '''
+    :param used_ids: an iterable (list, dict or set) with the keys you don't want
+    :return: a new id not in the used_ids
+    '''
+    possible_id = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789ñÑçÇ'
+    for id in possible_id:
+        if id not in used_ids:
+            return id
 def good_chain_names(pdb_list):
     '''
       Changed the chain id from the chains of the ProteinStructure objects to have concordancy with their sequence.
       If two chains are equal and are in the same pdb both will be named diferently and it will be tracked down.
+
       :param pdb_list: a list of ProteinStructure objects from each pdb
       :return: a dict with the id equivalence of homo-interactons (two equal chains)
       '''
+
+    #This function is only done to prevent the case of all chains having the same id or all pdb with the same id combinations
+    #also it allows to work with consistent chain id
     homo_dict = dict()
     seq_dict = dict()
+
     for pdb in pdb_list:
         chain = pdb.childs[0]
         other_chain = pdb.childs[1]
-        if chain is not other_chain:
-            chain_seq = chain.get_sequence_str()
-            other_seq = other_chain.get_sequence_str()
-            if chain_seq == other_seq: # It is an homo-interaction (both chains are the same)
-                for known_id in seq_dict:#Check if out sequence is found in another chain id from other pdb
-                    if seq_dict[known_id] == chain_seq: #Esta cadena ya existe con otro nombre y habra que trackear la conversion del homomero
-                        homo_dict.setdefault(other_chain.get_id(),set()).add(known_id)
-                        chain.id = known_id
-                        seq_dict[other_chain.get_id()] = other_seq
-                        break#As we have found the chain sequence in the known sequences we don't need to keep looking
-                if chain.get_id() not in seq_dict:#Check if out sequence is found in another chain id from other pdb
-                    seq_dict[chain.get_id()] = chain_seq
-                    seq_dict[other_chain.get_id()] = chain_seq
-                    homo_dict.setdefault(other_chain.get_id(),set()).add(chain.get_id())
-            else:#The chains are diferent so we'll check separatedly for their possible identicals in other pdb's
-                for known_id in seq_dict:
-                    if seq_dict[known_id] == chain_seq:
-                        chain.id = known_id
-                    elif seq_dict[known_id] == other_seq:
-                        other_chain.id = known_id
-                if chain.get_id() not in seq_dict:
-                    seq_dict[chain.get_id()] = chain_seq
-                if other_chain.get_id() not in seq_dict:
-                    seq_dict[other_chain.get_id()] = other_seq
-        pdb.restablish_dict()
+        chain_seq = chain.get_sequence_str()
+        other_seq = other_chain.get_sequence_str()
+
+        #Check if id aren't used already in other chains from past pdb's
+        if chain.get_id() in seq_dict:
+            chain.id = new_unused_id(seq_dict)
+        if chain.get_id() == other_chain.get_id():
+            other_chain.id = new_unused_id(chain.get_id())
+        if other_chain.get_id() in seq_dict:
+            id_lists = [x for x in seq_dict]
+            id_lists.append(chain.get_id())
+            other_chain.id = new_unused_id(id_lists)
+
+        if chain_seq == other_seq: # It is an homo-interaction (both chains are the same)
+            for known_id in seq_dict:#Check if out sequence is found in another chain id from other pdb
+                if seq_dict[known_id] == chain_seq: #This chain already exist with an other name so we'll change it
+                    chain.id = known_id
+                    seq_dict[other_chain.get_id()] = 'this name is forbiden'
+                    homo_dict[other_chain.get_id()] = known_id
+                    break#As we have found the chain sequence in the known sequences we don't need to keep looking
+            if chain.get_id() not in seq_dict:#Check if out sequence is found in another chain id from other pdb
+                seq_dict[chain.get_id()] = chain_seq
+                seq_dict[other_chain.get_id()] = 'this name is forbiden'
+                homo_dict[other_chain.get_id()] = chain.get_id()
+        else:#The chains are diferent so we'll check separatedly for their possible identicals in other pdb's
+            for known_id in seq_dict:
+                if seq_dict[known_id] == chain_seq:
+                    chain.id = known_id
+                elif seq_dict[known_id] == other_seq:
+                    other_chain.id = known_id
+            if chain.get_id() not in seq_dict:
+                seq_dict[chain.get_id()] = chain_seq
+            if other_chain.get_id() not in seq_dict:
+                seq_dict[other_chain.get_id()] = other_seq
+        pdb.restablish_dict()#Keep child_dict with good ids
     return homo_dict
-def all_interactions(pdb_list, homolog_chains_dict = None):
+def all_interactions(pdb_list, homolog_chains_dict = {}):
     '''
 
     :param pdb_list: A list of pdbs (Protein Structure objects)
-    :param homolog_chains_dict: Default = None. A dictionary with id transformation for homolog chains interacting
+    :param homolog_chains_dict: Default = Empty dictionary. A dictionary with id transformation for homolog chains interacting
     :return: A dictionary with the chain_id as keys, each of those is a dictionary with tupples of
     interacting residues as key and a pointer to the chain responsible for the interactions as value.
     '''
-    if homolog_chains_dict is not None:
-        temporary_dict = dict()
-        for homolog_chain in homolog_chains_dict:
-            for homolog_other_chain in homolog_chains_dict[homolog_chain]:
-                temporary_dict[homolog_other_chain] = homolog_chain
-                temporary_dict[homolog_chain] = homolog_other_chain
-        homolog_chains_dict = temporary_dict
+    homolog_chains_dict.update({chain : homolog for homolog, chain in homolog_chains_dict.items()})
     r = dict()
     for pdb in pdb_list:
         for chain in pdb:
@@ -105,57 +124,84 @@ def all_interactions(pdb_list, homolog_chains_dict = None):
                         r.setdefault(homolog_chains_dict[chain.get_id()], dict())[interacting_res_tuple] = other_chain
 
     return r
+def is_residue_interacting(residue, distance):
+    '''
+    Checks if the residue given is interacting with another residue from a diferent chain of the same ProteinStructure object
+    :param residue: a residue object
+    :param distance (int): the max distance you allow to consider an interaction
+    :return: boolean
+    '''
+    pdb = residue.parent.parent
+    for chain in pdb:
+        if chain is not residue.parent:
+            for other_residue in chain:
+                    for my_atom in residue:
+                        for other_atom in other_residue:
+                            if my_atom - other_atom < distance:
+                                return True
+    return False
 def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
     '''
-    It gets the interactions
+    Builds a macrocomplex pdb parting from a list of the interactions from a pdb (protein structure object)
     :param PDB_list: A list of pdb (Protein Structure objects)
-    :param homolog_chains_dict: Default = None. A dictionary with id transformation for homolog chains interacting
-    :return: A pdb object with all the interactions completed
+    :param homolog_chains_dict: Default = Empty dict. A dictionary with id transformation for homolog chains interacting
+    :return: A pdb object with all the interactions completed, a dictionary with the change of names done in the process
     '''
-    interactions_dict = all_interactions(PDB_list, homolog_chains_dict)
-    new_pdb = copy.deepcopy(PDB_list[0])
+
+    interactions_dict = all_interactions(PDB_list, homolog_chains_dict)#All known interactions that each chain should have
+    new_pdb = copy.deepcopy(PDB_list[0]) #Use one of the inputs as the base to build the macrocomplex
     new_pdb.id = 'Macrocomplex'
     chain_id_dict = {new_pdb.childs[0].get_id(): new_pdb.childs[0].get_id(),
                      new_pdb.childs[1].get_id(): new_pdb.childs[1].get_id()}
-    runing = True
+    reversed_homolog_dict = {chain : homolog for homolog, chain in homolog_chains_dict.items()}
 
-    #reversed_homolog_dict = {value : key for key, value in homolog_chains_dict.items()}
-    reversed_homolog_dict = dict()
-    for homolog_chain in homolog_chains_dict:
-        for homolog_other_chain in homolog_chains_dict[homolog_chain]:
-            reversed_homolog_dict[homolog_other_chain] = homolog_chain
-    while runing:
-        completed = 0
-        for chain in new_pdb:
-            print(chain.get_id())
-            intermedias = list()
-            for other_chain in new_pdb:
-                if chain is not other_chain:
-                    tmp_interaction = chain.interacting_residues(other_chain)
-                    if tmp_interaction is not None:
-                        intermedias.append(tuple(tmp_interaction))
+    '''     
+        Dictionaries explanation (because its quite messy)
+        
+    - interactions_dict = A dictionary with the chain id from the basic unique chains and the homologs as primary key. 
+    Each one is a dict with sets of numbers (interacting residues) as key and a pointer to a chain object responsible to 
+    that interaction            
+    
+    - chain_id_dict = when we change the name of a chain in our new_pdb because there's already a chain with that name
+    it fills the dictionary with the equivalence. To prevent problems from happening, the chains their id are also in the 
+    dictionary but doing nothing (e.g. {'A':'A'}) 
+    
+    -reversed_homolog_dict = a dictionary with the following structure {original_chain:homolog} used to find the correct 
+    chain in the pdb with homolog interactions
+    '''
+    
+
+    runing = True
+    while runing: #While at least one chain has a missing interaction /main loop? what if we run out of names?/
+        completed_chain = 0
+
+        for chain in new_pdb: #It goes chain by chain of the new pdb looking for missing interactions
+            completed_borders = 0
             for border in interactions_dict[chain_id_dict[chain.get_id()]]:
-                if border not in intermedias:
-                    if chain_id_dict[chain.get_id()] in interactions_dict[chain_id_dict[chain.get_id()]][border].parent and chain_id_dict[chain.get_id()] != interactions_dict[chain_id_dict[chain.get_id()]][border].get_id():
-                        for i in range(100):
-                            superimpose_pdb_by_chain(chain,interactions_dict[chain_id_dict[chain.get_id()]][border].parent[chain_id_dict[chain.get_id()]])
-                    elif reversed_homolog_dict[chain_id_dict[chain.get_id()]] in interactions_dict[chain_id_dict[chain.get_id()]][border].parent:
-                        for i in range(100):
-                            superimpose_pdb_by_chain(chain,interactions_dict[chain_id_dict[chain.get_id()]][border].parent[reversed_homolog_dict[chain_id_dict[chain.get_id()]]])
-                    new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()].upper()][border],
-                                                 interactions_dict[chain_id_dict[chain.get_id()].upper()][
-                                                     border].get_id(), track_name=True)
+                #Look in the residues known to interact if they actually do (lax is with a broader margin, to have into account litle deviations in the fit
+                confirmed_residues, lax_residues = 0, 0
+                for residue_number in border:
+                    if is_residue_interacting(chain.get_residue_by_num(residue_number), 4):
+                        confirmed_residues += 1
+                    elif is_residue_interacting(chain.get_residue_by_num(residue_number), 5):
+                        lax_residues += 1
+                if confirmed_residues+lax_residues < len(border) or lax_residues > confirmed_residues: #If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
+                    for i in range(100):#Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+                        superimpose_pdb_by_chain(chain,interactions_dict[chain_id_dict[chain.get_id()]][border].parent[chain_id_dict[chain.get_id()]])
+
+                    #Add the chain to fill the interaction and track the new name if necessary
+                    if len(reversed_homolog_dict)>0 and reversed_homolog_dict[chain_id_dict[chain.id]] in interactions_dict[chain_id_dict[chain.get_id()].upper()][border].parent.child_dict:
+                        new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()].upper()][border].parent[reversed_homolog_dict[chain_id_dict[chain.id]]],
+                                                     interactions_dict[chain_id_dict[chain.get_id()].upper()][border].get_id(), track_name=True)
+                    else:
+                        new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()].upper()][border],
+                                                     interactions_dict[chain_id_dict[chain.get_id()].upper()][border].get_id(), track_name=True)
                     chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()].upper()][border].get_id()
-                    print(chain_id_dict)
-                    intermedias.append(border)
-                if intermedias.sort() == list(interactions_dict[chain_id_dict[chain.get_id()]]).sort() and \
-                                len(intermedias) == len(interactions_dict[chain_id_dict[chain.get_id()]]) and \
-                                intermedias.sort(reverse=True) == list(interactions_dict[chain_id_dict[chain.get_id()]]).sort(reverse=True):
-                    completed += 1
-                    print('Completed %s and completed = %s' %(chain.get_id(), completed))
-                    new_pdb.save_to_file('pdb/%s.pdb' %completed)
-                    break
-        if completed == len(new_pdb):
+                completed_borders += 1
+            #Are all the interactions for the chain fullfilled?
+            if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):
+                completed_chain += 1
+        if completed_chain == len(new_pdb):
             runing = False
     return new_pdb, chain_id_dict
 
@@ -163,12 +209,15 @@ def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
 if __name__== '__main__' :
     pdb_list = list()
     #id_list = ['AC', 'AB', 'DC', 'AD', 'BC']
-    id_list = ['AB', 'AC', 'AD']
-    sqs = dict()
+    id_list = ['AB', 'AD']
     for id in id_list:
         pdb_list.append(PS(id, 'pdb/%s.pdb' %id))
+    for pdb in pdb_list:
+        pdb.childs[1].id = 'A'
+        pdb.childs[0].id = 'A'
     homo_chains = good_chain_names(pdb_list)
-    new_pdb = construct_macrocomplex(pdb_list, homo_chains)
-    pir.superimpose_to_pir(new_pdb, pdb_list, 'kk.pir')
+    new_pdb, chain_id_dict = construct_macrocomplex(pdb_list, homo_chains)
+    new_pdb.save_to_file('pdb/junto.pdb')
+    pir.superimpose_to_pir(new_pdb, pdb_list, 'kk.pir', chain_id_dict)
 
     print('THE END')
