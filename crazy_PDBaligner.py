@@ -2,6 +2,7 @@ from PDB import ProteinStructure as PS
 from Bio.PDB import Superimposer
 import copy
 from Bio.pairwise2 import align, format_alignment
+import os
 import pir
 from random import shuffle
 
@@ -105,6 +106,14 @@ def good_chain_names(pdb_list):
         pdb.restablish_dict()#Keep child_dict with good ids
     return homo_dict
 def delete_nonsymetryc_interactions_from_dict(interactions_dict, homolog_chains):
+    '''
+    If there are homolog chains, it removes the pointer to one self of the homolog chains. Used mainly to prevent
+    homologs having to fulfill both non-symmetrical interactions in the same pdb.
+
+    :param interactions_dict: A dictionary with the chain_id as keys, each of those is a dictionary with tupples of
+    interacting residues as key and a pointer to the chain responsible for the interactions as value.
+    :param homolog_chains:  A dictionary with id transformation for homolog chains interacting
+    '''
     new_dictionary = copy.deepcopy(interactions_dict)
     if len(homolog_chains) > 0:
         for chain in new_dictionary:
@@ -115,7 +124,7 @@ def delete_nonsymetryc_interactions_from_dict(interactions_dict, homolog_chains)
 
 def all_interactions(pdb_list, homolog_chains_dict = {}):
     '''
-
+    A function that returns a dictionary with the interactions of each chain with the others from the pdbs in the pdb_list
     :param pdb_list: A list of pdbs (Protein Structure objects)
     :param homolog_chains_dict: Default = Empty dictionary. A dictionary with id transformation for homolog chains interacting
     :return: A dictionary with the chain_id as keys, each of those is a dictionary with tupples of
@@ -226,14 +235,16 @@ def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
 
 if __name__== '__main__' :
     pdb_list = list()
-    #id_list = ['AC', 'AB']
-    id_list = ['locura_proteasoma/1U', 'locura_proteasoma/MN', 'locura_proteasoma/LY']
-    #id_list = [ 'locura_proteasoma/MN']
+    #id_list = ['AC', 'AB'] #hemoglobin
+    id_list = ['1U', 'MN', 'LY'] #proteasoma
+
     for id in id_list:
         pdb_list.append(PS(id, 'pdb/%s.pdb' %id))
+    if not os.path.exists('tmp'):
+        os.mkdir('tmp')
     homo_chains = good_chain_names(pdb_list)
     new_pdb, chain_id_dict = construct_macrocomplex(pdb_list, homo_chains)
-    new_pdb.save_to_file('pdb/junto.pdb')
-    #pir.superimpose_to_pir(new_pdb, pdb_list, 'kk.pir', chain_id_dict)
+    new_pdb.save_to_file('pdb/proteasoma.pdb')
+    pir.superimpose_to_pir(new_pdb, pdb_list, 'kk.pir', chain_id_dict)
 
     print('THE END')
