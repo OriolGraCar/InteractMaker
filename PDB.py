@@ -5,11 +5,12 @@ from Bio.PDB import protein_letters_3to1
 import copy
 import numpy
 from sys import stderr
+from Bio.PDB import NeighborSearch
 
 ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
 ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 numbers = '01234567890'
-ltr = ascii_uppercase + ascii_lowercase + numbers
+ltr = ascii_uppercase[::-1] + ascii_lowercase + numbers
 
 
 class BASE(object):
@@ -303,6 +304,12 @@ class Chain(BASE):
         for res in self:
             if res.num == number:
                 return res
+    def get_atoms_list(self):
+        """Returns a list of atoms"""
+        r = list()
+        for residue in self.get_residues():
+            r.extend(residue.childs)
+        return r
     def iter_atoms(self):
         """Returns a generator of residues"""
         for residue in self.get_residues():
@@ -325,7 +332,7 @@ class Chain(BASE):
             residue.id = (str(i), residue.name)
             i += 1
         self.child_dict = self._get_childs_dict(self.childs)
-    def interacting_residues(self, other_chain, dist = 4):
+    def interacting_residues(self, other_chain, dist = 4.0):
         """
         Iterates through all the possible pair of atoms (one from self and the other from other_chain)
         and returns a list of the residue numbers from self that interact with other_chain.
@@ -334,20 +341,14 @@ class Chain(BASE):
         :param dist: distance of interaction in Armstrong (default = 4)
         :return: List of intreacting residues
         """
+        ns = NeighborSearch(other_chain.get_atoms_list())
         interacting = list()
         for res in self:
-            for other_res in other_chain:
-                b = None
-                if len(interacting) > 0 and interacting[len(interacting)-1] == res.num:
+            for atom in res:
+                anything_close = ns.search(center= atom.get_coord(), radius=dist)
+                if len(anything_close) > 0:
+                    interacting.append(res.num)
                     break
-                for atom in res:
-                    if b:
-                        break
-                    for other_atom in other_res:
-                        if atom-other_atom < dist:
-                            interacting.append(res.num)
-                            b = 1
-                            break
         if len(interacting)>0:
             return interacting
 class Residue(BASE):
