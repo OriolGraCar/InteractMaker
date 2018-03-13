@@ -1,0 +1,4 @@
+source leaprc.protein.ff14SB
+target = loadpdb pdb/complex_name.pdb
+saveamberparm target complex_name.prmtop complex_name.inpcrd
+exit
