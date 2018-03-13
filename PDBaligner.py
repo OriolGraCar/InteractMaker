@@ -1,9 +1,10 @@
 from PDB import ProteinStructure as PS
-from Bio.PDB import Superimposer
+from Bio.PDB import Superimposer, NeighborSearch
 import copy
 from Bio.pairwise2 import align, format_alignment
 import os
 import pir
+import datetime
 from random import shuffle
 
 def find_common_atoms(chain_fix, chain_mov):
@@ -132,7 +133,6 @@ def all_interactions(pdb_list, homolog_chains_dict = {}):
     '''
     mirror_homolog_dict = copy.copy(homolog_chains_dict)
     mirror_homolog_dict.update({chain : homolog for homolog, chain in homolog_chains_dict.items()})
-
     r = dict()
     for pdb in pdb_list:
         for chain in pdb:
@@ -144,6 +144,7 @@ def all_interactions(pdb_list, homolog_chains_dict = {}):
                         r.setdefault(mirror_homolog_dict[chain.get_id()], dict())[interacting_res_tuple] = other_chain
     delete_nonsymetryc_interactions_from_dict(r, mirror_homolog_dict)
     return r
+
 def is_residue_interacting(residue, distance):
     '''
     Checks if the residue given is interacting with another residue from a diferent chain of the same ProteinStructure object
@@ -159,6 +160,19 @@ def is_residue_interacting(residue, distance):
                         for other_atom in other_residue:
                             if my_atom - other_atom < distance:
                                 return True
+    return False
+def fast_is_residue_interacting(residue, distance):
+    pdb = residue.parent.parent
+    other_atoms = []
+    for chain in pdb:
+        if chain is not residue.parent:
+            other_atoms.extend(chain.get_atoms_list())
+    ns = NeighborSearch(other_atoms)
+    for atom in residue:
+        result = ns.search(center= atom.get_coord(), radius=distance)
+        if len(result) > 0:
+            return True
+
     return False
 def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
     '''
@@ -200,13 +214,13 @@ def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
                 #Look in the residues known to interact if they actually do (lax is with a broader margin, to have into account litle deviations in the fit
                 confirmed_residues, lax_residues = 0, 0
                 for residue_number in border:
-                    if is_residue_interacting(chain.get_residue_by_num(residue_number), 4):
+                    if fast_is_residue_interacting(chain.get_residue_by_num(residue_number), 4):
                         confirmed_residues += 1
-                    elif is_residue_interacting(chain.get_residue_by_num(residue_number), 5):
+                    elif fast_is_residue_interacting(chain.get_residue_by_num(residue_number), 5):
                         lax_residues += 1
-                if confirmed_residues+lax_residues < len(border) or lax_residues > confirmed_residues: #If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
+                if confirmed_residues+lax_residues < len(border) or (lax_residues > confirmed_residues and confirmed_residues < (len(border)/2)): #If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
                     if chain_id_dict[chain.get_id()] in homolog_chains_dict:
-                        for i in range(100):#Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+                        for i in range(200):#Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
                             superimpose_pdb_by_chain(chain,interactions_dict[chain_id_dict[chain.get_id()]][border].parent[homolog_chains_dict[chain_id_dict[chain.get_id()]]])
                         print('He usado %s del pdb %s para obtener %s y tapar %s de %s' % (
                             interactions_dict[chain_id_dict[chain.get_id()]][border].parent[homolog_chains_dict[chain_id_dict[chain.get_id()]]].get_id(),
