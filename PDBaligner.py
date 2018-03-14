@@ -3,6 +3,7 @@ from Bio.PDB import Superimposer, NeighborSearch
 import copy
 from Bio.pairwise2 import align, format_alignment
 import os
+import sys
 import pir
 import datetime
 from random import shuffle
@@ -53,6 +54,10 @@ def new_unused_id(used_ids):
     for id in possible_id:
         if id not in used_ids:
             return id
+
+    sys.stderr.write("Internal Error: Limit of valid sequence names reached.\n")
+    exit(1)
+
 def good_chain_names(pdb_list):
     '''
       Changed the chain id from the chains of the ProteinStructure objects to have concordancy with their sequence.
@@ -144,24 +149,13 @@ def all_interactions(pdb_list, homolog_chains_dict = {}):
                         r.setdefault(mirror_homolog_dict[chain.get_id()], dict())[interacting_res_tuple] = other_chain
     delete_nonsymetryc_interactions_from_dict(r, mirror_homolog_dict)
     return r
-
-def is_residue_interacting(residue, distance):
+def fast_is_residue_interacting(residue, distance):
     '''
     Checks if the residue given is interacting with another residue from a diferent chain of the same ProteinStructure object
     :param residue: a residue object
     :param distance (int): the max distance you allow to consider an interaction
     :return: boolean
     '''
-    pdb = residue.parent.parent
-    for chain in pdb:
-        if chain is not residue.parent:
-            for other_residue in chain:
-                    for my_atom in residue:
-                        for other_atom in other_residue:
-                            if my_atom - other_atom < distance:
-                                return True
-    return False
-def fast_is_residue_interacting(residue, distance):
     pdb = residue.parent.parent
     other_atoms = []
     for chain in pdb:
@@ -203,7 +197,7 @@ def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
     chain in the pdb with homolog interactions
     '''
 
-
+    tmp_count = 0
     runing = True
     while runing: #While at least one chain has a missing interaction /main loop? what if we run out of names?/
         completed_chain = 0
@@ -236,8 +230,14 @@ def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
                     #Add the chain to fill the interaction and track the new name if necessary
                     new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border],
                                                  interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), track_name=True)
-                    new_pdb.save_to_file('tmp/%s.pdb'%new_name)
-                    chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()].upper()][border].get_id()
+                    if new_name is None:
+                        sys.stderr.write("Last obtained structure is part%s.pdb" % tmp_count)
+                        runing = False
+                        break
+                    else:
+                        new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
+                        tmp_count += 1
+                        chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()
                 completed_borders += 1
             #Are all the interactions for the chain fullfilled?
             if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):
@@ -245,12 +245,34 @@ def construct_macrocomplex(PDB_list,  homolog_chains_dict = {}):
         if completed_chain == len(new_pdb):
             runing = False
     return new_pdb, chain_id_dict
+def delete_overlapping_chains(pdb):
+    """
+    Looks for clashes between chains and if the clash is big it deletes the latest chain added to the pdb
+    :param pdb: A Protein Structure object
+    """
+    for chain in pdb:
+        for chain_position in  range(len(pdb)):
+            other_chain = pdb.childs[chain_position]
+            contador, n_of_atoms = 0, 0
+            if chain is other_chain:
+                continue
+            ns = NeighborSearch(other_chain.get_atoms_list())
+            for atom in chain.iter_atoms():
+                clash = ns.search(atom.get_coord(), radius=1.5)
+                if len(clash) > 0:
+                    contador += 1
+                n_of_atoms += 1
+            if contador > n_of_atoms*0.35:
+                sys.stderr.write('Chain %s clashes significantly with chain %s so we will delete the latest\n' %(chain.get_id(), other_chain.get_id()))
+                pdb.childs.pop(chain_position)
+
 
 
 if __name__== '__main__' :
     pdb_list = list()
     #id_list = ['AC', 'AB'] #hemoglobin
     id_list = ['1U', 'MN', 'LY'] #proteasoma
+    #id_list = ['OP', 'QC', 'CP']
 
     for id in id_list:
         pdb_list.append(PS(id, 'pdb/%s.pdb' %id))
@@ -258,7 +280,8 @@ if __name__== '__main__' :
         os.mkdir('tmp')
     homo_chains = good_chain_names(pdb_list)
     new_pdb, chain_id_dict = construct_macrocomplex(pdb_list, homo_chains)
-    new_pdb.save_to_file('pdb/proteasoma.pdb')
+    delete_overlapping_chains(new_pdb)
+    new_pdb.save_to_file('pdb/vira.pdb')
     pir.superimpose_to_pir(new_pdb, pdb_list, 'kk.pir', chain_id_dict)
 
     print('THE END')
