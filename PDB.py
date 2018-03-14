@@ -13,6 +13,7 @@ numbers = '01234567890'
 ltr = ascii_uppercase[::-1] + ascii_lowercase + numbers
 
 
+
 class BASE(object):
     """Base class to build the ProteinStructure on top of it"""
     def __init__(self, id):
@@ -154,13 +155,18 @@ class ProteinStructure(BASE):
         :param track_name(Boolean): default False;
         :return: if track_name = True returns the id given to the new chain.
         """
+        nw_id = None
         if cid in self.child_dict:
             for letter in ltr:
                 if letter not in self.child_dict:
                     nw_id = letter
                     break
-            stderr.write('WARNING!: Tried to add a chain to %s with an already existing Chain id (%s). I will try to change it to %s.\n' %(cid , self.id, nw_id))
-            cid = self.add_chain(nw_chain, nw_id, track_name= track_name)
+            if nw_id is None:
+                stderr.write("Internal Error: Limit of valid sequence names reached. Program finished abrubtly.\n")
+                return None
+            else:
+                stderr.write('WARNING!: Tried to add a chain to %s with an already existing Chain id (%s). I will try to change it to %s.\n' %(cid , self.id, nw_id))
+                cid = self.add_chain(nw_chain, nw_id, track_name= track_name)
         else:
             my_nw_chain = copy.deepcopy(nw_chain)
             my_nw_chain.id = cid
@@ -194,7 +200,7 @@ class ProteinStructure(BASE):
                     stderr.write("WARNING!: Gap found between residue %s and residue %s in the chain %s of the pdb %s\n" %(
                         current_residue, residue.num, chain.get_id(), self.get_id()))
                 current_residue = str(int(residue.num) + 1)
-    def find_clash(self):
+    def find_clashes(self):
         """
         Check every pair of backbone atoms of diferent chains to see if they clash.
 
@@ -202,17 +208,17 @@ class ProteinStructure(BASE):
         """
         vwr = {'C':1.8, 'O':1.4, 'N':1.7, 'S':2, 'CA': 1.8}
         bb = ('C', 'O', 'N', 'CA')
-        for chain1 in self:
-            for chain2 in self:
-                if chain1 is chain2:
-                    break
-                for atom1 in chain1.iter_atoms():
-                    for atom2 in chain2.iter_atoms():
-                        if atom1.get_name() in bb and atom2.get_name() in bb:
-                            clash = vwr[atom1.get_name()] + vwr[atom2.get_name()] - (atom1-atom2)
-                            if clash > 0:
-                                stderr.write('WARNING!: The atom num %s of the chain %s clashes with the atom %s of the chain %s from %s\n' %(atom1.num, chain1.get_id(), atom2.num, chain2.get_id(), self.id))
-                                stderr.write('\t    A %s clashes with a %s in a %s A distance\n' %(atom1.get_name(),atom2.get_name(), atom1-atom2))
+        for chain in self:
+            for other_chain in self:
+                if chain is not other_chain:
+                    contador_de_clashes = 0
+                    ns = NeighborSearch(other_chain.get_atoms_list())
+                    for atom in chain.iter_atoms():
+                        clashes = ns.search(atom.get_coord, radius=1.5)
+                        if len(clashes)> 0:
+                            contador_de_clashes += 1
+                    if contador_de_clashes > 0:
+                        stderr.write("The chain %s has %s atoms clashing with chain %s in the pdb %s" %(chain.get_id(), contador_de_clashes, other_chain.get_id(), self.parent.get_id()))
     def save_fasta(self, outfile):
         """Saves the sequence of all the chains in the pdb """
         with open(outfile, "w") as out_fa:
@@ -332,7 +338,7 @@ class Chain(BASE):
             residue.id = (str(i), residue.name)
             i += 1
         self.child_dict = self._get_childs_dict(self.childs)
-    def interacting_residues(self, other_chain, dist = 4.0):
+    def interacting_residues(self, other_chain, dist = 3.5):
         """
         Iterates through all the possible pair of atoms (one from self and the other from other_chain)
         and returns a list of the residue numbers from self that interact with other_chain.
