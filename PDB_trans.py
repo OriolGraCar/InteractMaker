@@ -4,6 +4,11 @@ import numpy as np
 import sys
 import os
 def refine_interactions(interaction_dict):
+    '''
+    :param interaction_dict: A dictionary with a identificator for both type of chains as keys, each of those is a dictionary with tupples of
+    interacting residues as key and a pointer to the chain responsible for the interactions as value.
+    :return: A dictionary with the same format of interaction_dict but with non-redundant interactions
+    '''
     refined_interacciones = dict()
     for pair_type in interaction_dict:
         refined_interacciones.setdefault(pair_type, dict())
@@ -22,12 +27,6 @@ def refine_interactions(interaction_dict):
             if interaccion not in refined_interacciones[pair_type] and valid:
                 refined_interacciones.setdefault(pair_type, dict())[interaccion] = interaction_dict[pair_type][interaccion]
     return refined_interacciones
-def independize_from_mainpdb(interaction_dict):
-    independent_dict = dict()
-    for pair_type in interaction_dict:
-        for interaccion in interaction_dict[pair_type]:
-            independent_dict.setdefault(pair_type, dict())[interaccion] = [copy.deepcopy(interaction_dict[pair_type][interaccion][0]), copy.deepcopy(interaction_dict[pair_type][interaccion][1])]
-    return  independent_dict
 def deconstruct_macrocomplex_by_interactions(pdb_file, output_folder = './', translation = np.array([0,0,0]), rotation= np.array([[1,0,0], [0,1,0], [0,0,1]])):
     '''
     :param pdb_file(str): A path to a pdb file
@@ -56,8 +55,6 @@ def deconstruct_macrocomplex_by_interactions(pdb_file, output_folder = './', tra
                 if interacting_res_tuple:
                     todas_interacciones.setdefault(''.join(sorted(chain.get_sequence_str()+other_chain.get_sequence_str())), dict())[interacting_res_tuple] = chain.get_id()+other_chain.get_id()
     interacciones_unicas = refine_interactions(todas_interacciones)
-    for i in range(100):
-        interacciones_unicas = refine_interactions(interacciones_unicas)
 
     for pair_type in interacciones_unicas:
         for interaccion in interacciones_unicas[pair_type]:
@@ -83,5 +80,5 @@ Rz(A) = sinA    cosA    0
 if __name__ == '__main__':
 
     #deconstruct_macrocomplex_by_interactions(sys.argv[1], sys.argv[2])
-    deconstruct_macrocomplex_by_interactions('pdb/1a3n.pdb', 'pdb/hemo_deconstruct')
+    deconstruct_macrocomplex_by_interactions('pdb/1pma.pdb', 'pdb/hemo_deconstruct')
 
