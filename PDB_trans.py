@@ -2,6 +2,7 @@ from PDB import ProteinStructure as PS
 import copy
 import numpy as np
 import sys
+import os
 def refine_interactions(interaction_dict):
     refined_interacciones = dict()
     for pair_type in interaction_dict:
@@ -10,7 +11,7 @@ def refine_interactions(interaction_dict):
             valid = True
             for otra_interaccion in refined_interacciones[pair_type]:
                 intersect =  set(interaccion).intersection( set(otra_interaccion))
-                if len(intersect) >= max([len(interaccion), len(otra_interaccion)])*0.2:
+                if len(intersect) >= max([len(interaccion), len(otra_interaccion)])*0.3:
                     if len(interaccion) >= len(otra_interaccion):
                         refined_interacciones.setdefault(pair_type, dict())[interaccion] = interaction_dict[pair_type][interaccion]
                         del refined_interacciones[pair_type][otra_interaccion]
@@ -34,6 +35,8 @@ def deconstruct_macrocomplex_by_interactions(pdb_file, output_folder = './', tra
     :param translation (numpy array 3x1): a np array defining the translation of the new pdb's
     :param rotate (numpy array 3x3): a np array defining the rotation of the new pdb's
     '''
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
     pdb = PS('original', pdb_file)
     pdb_list = list()
     todas_interacciones = dict()
@@ -46,8 +49,9 @@ def deconstruct_macrocomplex_by_interactions(pdb_file, output_folder = './', tra
                 seqs.append(other_chain.get_sequence_str())
             interacting_res_tuple = None
             if chain is not other_chain:
-                int = chain.interacting_residues(other_chain)
+                int = chain.interacting_residues(other_chain, dist=4)
                 if int:
+                    int.extend(other_chain.interacting_residues(chain, dist=4))
                     interacting_res_tuple = tuple(int)
                 if interacting_res_tuple:
                     todas_interacciones.setdefault(''.join(sorted(chain.get_sequence_str()+other_chain.get_sequence_str())), dict())[interacting_res_tuple] = chain.get_id()+other_chain.get_id()
@@ -79,5 +83,5 @@ Rz(A) = sinA    cosA    0
 if __name__ == '__main__':
 
     #deconstruct_macrocomplex_by_interactions(sys.argv[1], sys.argv[2])
-    deconstruct_macrocomplex_by_interactions('pdb/1pma.pdb', 'pdb/deconstruct')
+    deconstruct_macrocomplex_by_interactions('pdb/1a3n.pdb', 'pdb/hemo_deconstruct')
 
