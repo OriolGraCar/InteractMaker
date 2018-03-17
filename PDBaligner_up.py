@@ -5,8 +5,6 @@ from Bio.pairwise2 import align, format_alignment
 import os
 import sys
 import pir
-import datetime
-from random import shuffle
 
 def find_common_atoms(chain_fix, chain_mov):
     '''
@@ -34,6 +32,7 @@ def find_common_atoms(chain_fix, chain_mov):
             atoms_mov.extend(chain_mov.childs[i + count_move].backbone())
     #print(format_alignment(*alignment[0]))
     return atoms_fix, atoms_mov
+
 def superimpose_pdb_by_chain(chain_fix, chain_mov):
     '''
        Superimpose the pdb that owns the chain_mov on the pdb that owns the chain_fix
@@ -111,6 +110,7 @@ def good_chain_names(pdb_list):
                 seq_dict[other_chain.get_id()] = other_seq
         pdb.restablish_dict()#Keep child_dict with good ids
     return homo_dict
+
 def delete_nonsymetryc_interactions_from_dict(interactions_dict, homolog_chains, homo_chains ):
     '''
     If there are homolog chains, it removes the pointer to one self of the homolog chains. Used mainly to prevent
@@ -126,7 +126,6 @@ def delete_nonsymetryc_interactions_from_dict(interactions_dict, homolog_chains,
             for interaction in new_dictionary[chain]:
                 if new_dictionary[chain][interaction].get_id() == chain and chain not in homo_chains:
                     del interactions_dict[chain][interaction]
-
 
 def all_interactions(pdb_list, homolog_chains_dict = {}):
     '''
@@ -177,8 +176,8 @@ def fast_is_residue_interacting(residue, distance):
         result = ns.search(center= atom.get_coord(), radius=distance)
         if len(result) > 0:
             return True
-
     return False
+
 def construct_macrocomplex(PDB_list, homolog_chains_dict = {}):
     '''
     Builds a macrocomplex pdb parting from a list of the interactions from a pdb (protein structure object)
@@ -256,7 +255,6 @@ def construct_macrocomplex(PDB_list, homolog_chains_dict = {}):
             runing = False
     return new_pdb, chain_id_dict
 
-
 def build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_chains_dict, tmp_count):
     completed_borders = 0
     for border in interactions_dict[chain_id_dict[chain.get_id()]]:
@@ -271,8 +269,7 @@ def build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_ch
                 lax_residues > confirmed_residues and confirmed_residues < (len(
                 border) / 2)):  # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
             if chain_id_dict[chain.get_id()] in homolog_chains_dict:
-                for i in range(
-                        200):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+                for i in range(100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
                     superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                         homolog_chains_dict[chain_id_dict[chain.get_id()]]])
                 print('He usado %s del pdb %s para obtener %s y tapar %s de %s' % (
@@ -281,8 +278,7 @@ def build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_ch
                     interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id,
                     interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), border, chain.get_id()))
             else:
-                for i in range(
-                        100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+                for i in range(100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
                     superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                         chain_id_dict[chain.get_id()]])
                 print('He usado %s del pdb %s para obtener %s y tapar %s de %s' % (
@@ -295,7 +291,7 @@ def build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_ch
                                          interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
                                          track_name=True)
             if new_name is None:
-                sys.stderr.write("Last obtained structure is part%s.pdb" % tmp_count)
+                sys.stderr.write("Last obtained structure is part%s.pdb\n" % tmp_count)
                 exit(1)
             else:
                 new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
@@ -303,7 +299,6 @@ def build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_ch
                 chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()].upper()][border].get_id()
         completed_borders += 1
     return completed_borders
-
 
 def recursively_reconstruct(PDB_list, homolog_chains_dict = {}):
     interactions_dict = all_interactions(PDB_list, homolog_chains_dict)#All known interactions that each chain should have
@@ -317,9 +312,7 @@ def recursively_reconstruct(PDB_list, homolog_chains_dict = {}):
     while runing:  # While at least one chain has a missing interaction /main loop? what if we run out of names?/
         completed_chain = 0
         for chain in new_pdb:
-            completed_borders = 0
-            completed_borders += build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_chains_dict, tmp_count)
-
+            completed_borders = build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_chains_dict, tmp_count)
             if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):
                 completed_chain += 1
         if completed_chain == len(new_pdb):
