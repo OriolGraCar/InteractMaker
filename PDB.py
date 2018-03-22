@@ -13,7 +13,6 @@ numbers = '01234567890'
 ltr = ascii_uppercase[::-1] + ascii_lowercase + numbers
 
 
-
 class BASE(object):
     """Base class to build the ProteinStructure on top of it"""
     def __init__(self, id):
@@ -142,6 +141,10 @@ class ProteinStructure(BASE):
             for res in chain:
                 r.append(res)
         return r
+    def get_other_chain(self, chain_id):
+        for chain in self:
+            if chain.get_id() is not chain_id:
+                return chain
     def add_chain(self, nw_chain, cid, track_name = False):
         """
             Adds the input chain object to the Structure.
@@ -163,6 +166,8 @@ class ProteinStructure(BASE):
                     break
             if nw_id is None:
                 stderr.write("Internal Error: Limit of valid sequence names reached. Program finished abrubtly.\n")
+                self.save_to_file('last_pdb_before_error.pdb')
+                exit(1)
                 return None
             else:
                 stderr.write('WARNING!: Tried to add a chain to %s with an already existing Chain id (%s). I will try to change it to %s.\n' %(cid , self.id, nw_id))
