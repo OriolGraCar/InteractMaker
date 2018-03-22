@@ -137,18 +137,20 @@ def all_interactions(pdb_list, homolog_chains_dict = {}):
     :return: A dictionary with the chain_id as keys, each of those is a dictionary with tupples of
     interacting residues as key and a pointer to the chain responsible for the interactions as value.
     '''
-    mirror_homolog_dict = copy.copy(homolog_chains_dict)
-    mirror_homolog_dict.update({chain : homolog for homolog, chain in homolog_chains_dict.items()})
     r = dict()
     for pdb in pdb_list:
         for chain in pdb:
             for other_chain in pdb:
                 if chain is not other_chain:
-                    interacting_res_tuple = tuple(chain.interacting_residues(other_chain))
-                    r.setdefault(chain.get_id(), dict())[interacting_res_tuple] = other_chain
-                    if chain.get_id() in mirror_homolog_dict:
-                        r.setdefault(mirror_homolog_dict[chain.get_id()], dict())[interacting_res_tuple] = other_chain
-    '''delete_nonsymetryc_interactions_from_dict(r, homolog_chains_dict)'''
+                    interacting_res = chain.interacting_residues(other_chain)
+                    if interacting_res:
+                        interacting_res_tuple = tuple(interacting_res)
+                        r.setdefault(chain.get_id(), dict())[interacting_res_tuple] = other_chain
+                        if chain.get_id() in homolog_chains_dict:
+                            r.setdefault(homolog_chains_dict[chain.get_id()], dict())[interacting_res_tuple] = other_chain
+    for homo in homolog_chains_dict:
+        r[homo] = r[homolog_chains_dict[homo]]
+    #delete_nonsymetryc_interactions_from_dict(r, homolog_chains_dict)
     return r
 
 def fast_is_residue_interacting(residue, distance):
@@ -186,13 +188,17 @@ def reconstruct(PDB_list, homolog_chains_dict = {}):
                 # Look in the residues known to interact if they actually do (lax is with a broader margin, to have into account litle deviations in the fit
                 confirmed_residues, lax_residues = check_interactions(chain, border)
                 # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
-
+                ok = True
                 if confirmed_residues + lax_residues < len(border) or (lax_residues > confirmed_residues and confirmed_residues < (len(border) / 2)):
-                    tmp_count = superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count)
-                completed_borders += 1
-
-            if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):
-                completed_chain += 1
+                    tmp_count, ok = superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count)
+                if ok:
+                    completed_borders += 1
+            if chain_id_dict[chain.get_id()] in homolog_chains_dict:
+                if completed_borders == len(interactions_dict[homolog_chains_dict[chain_id_dict[chain.get_id()]]]):
+                    completed_chain += 1
+            else:
+                if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):
+                    completed_chain += 1
         if completed_chain == len(new_pdb):
             runing = False
     return new_pdb, chain_id_dict
@@ -244,11 +250,13 @@ def superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_
     if new_name is None:
         sys.stderr.write("Last obtained structure is part%s.pdb" % tmp_count)
         exit(1)
+    elif new_name == 'NADA':
+        tmp_count, False
     else:
         new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
         tmp_count += 1
         chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()
-    return tmp_count
+    return tmp_count, True
 
 def clash_maker(chain_name, pdb):
     for other_chain in pdb:
@@ -291,19 +299,24 @@ def delete_overlapping_chains(pdb):
 
 if __name__== '__main__' :
     pdb_list = list()
+
     # ---Estos funcionan ---
     #folder = 'pdb/proteasoma'
     #folder = 'pdb/deconstruct'
     #folder = 'pdb/nucl'
     #folder = 'pdb/hemo_deconstruct'
     #folder = 'pdb/hemoglobin'
+    #folder = 'pdb/phosphate'
+
     # ---Estos no funcionan ---
     folder = 'pdb/capsid'
+
+
+
     id_list = os.listdir(folder)
     for pdb_id in id_list:
         pdb_list.append(PS(pdb_id, '%s/%s' %(folder, pdb_id)))
     for pdb in pdb_list:
-        print(pdb.id)
         pdb.childs[0].id = 'A'
         pdb.childs[1].id = 'A'
     if not os.path.exists('tmp'):
