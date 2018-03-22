@@ -4,7 +4,6 @@ import copy
 from Bio.pairwise2 import align, format_alignment
 import os
 import sys
-import pir
 import datetime
 from random import shuffle
 
@@ -36,7 +35,6 @@ def find_common_atoms(chain_fix, chain_mov):
     #print(format_alignment(*alignment[0]))
     return atoms_fix, atoms_mov
 
-
 def superimpose_pdb_by_chain(chain_fix, chain_mov):
     '''
        Superimpose the pdb that owns the chain_mov on the pdb that owns the chain_fix
@@ -47,7 +45,6 @@ def superimpose_pdb_by_chain(chain_fix, chain_mov):
     atoms_fix, atoms_mov = find_common_atoms(chain_fix, chain_mov)
     sup.set_atoms(atoms_fix, atoms_mov)
     chain_mov.parent.transform(rot = sup.rotran[0], tran = sup.rotran[1])
-
 
 def new_unused_id(used_ids):
     '''
@@ -61,7 +58,6 @@ def new_unused_id(used_ids):
 
     sys.stderr.write("Internal Error: Limit of valid sequence names reached.\n")
     exit(1)
-
 
 def good_chain_names(pdb_list):
     '''
@@ -117,8 +113,7 @@ def good_chain_names(pdb_list):
         pdb.restablish_dict()  # Keep child_dict with good ids
     return homo_dict
 
-
-def delete_nonsymetryc_interactions_from_dict(interactions_dict, homolog_chains, homo_chains ):
+def delete_nonsymetryc_interactions_from_dict(interactions_dict, homo_chains ):
     '''
     If there are homolog chains, it removes the pointer to one self of the homolog chains. Used mainly to prevent
     homologs having to fulfill both non-symmetrical interactions in the same pdb.
@@ -128,12 +123,11 @@ def delete_nonsymetryc_interactions_from_dict(interactions_dict, homolog_chains,
     :param homolog_chains:  A dictionary with id transformation for homolog chains interacting
     '''
     new_dictionary = copy.deepcopy(interactions_dict)
-    if len(homolog_chains) > 0:
+    if len(homo_chains) > 0:
         for chain in new_dictionary:
             for interaction in new_dictionary[chain]:
                 if new_dictionary[chain][interaction].get_id() == chain and chain not in homo_chains:
                     del interactions_dict[chain][interaction]
-
 
 def all_interactions(pdb_list, homolog_chains_dict = {}):
     '''
@@ -154,27 +148,16 @@ def all_interactions(pdb_list, homolog_chains_dict = {}):
                     r.setdefault(chain.get_id(), dict())[interacting_res_tuple] = other_chain
                     if chain.get_id() in mirror_homolog_dict:
                         r.setdefault(mirror_homolog_dict[chain.get_id()], dict())[interacting_res_tuple] = other_chain
-    delete_nonsymetryc_interactions_from_dict(r, mirror_homolog_dict, homolog_chains_dict)
+    '''delete_nonsymetryc_interactions_from_dict(r, homolog_chains_dict)'''
     return r
 
-
-def is_residue_interacting(residue, distance):
-    '''
-    Checks if the residue given is interacting with another residue from a diferent chain of the same ProteinStructure object
-    :param residue: a residue object
-    :param distance (int): the max distance you allow to consider an interaction
-    :return: boolean
-    '''
-    pdb = residue.parent.parent
-    for chain in pdb:
-        if chain is not residue.parent:
-            for other_residue in chain:
-                    for my_atom in residue:
-                        for other_atom in other_residue:
-                            if my_atom - other_atom < distance:
-                                return True
-    return False
 def fast_is_residue_interacting(residue, distance):
+    '''
+     Checks if the residue given is interacting with another residue from a diferent chain of the same ProteinStructure object
+     :param residue: a residue object
+     :param distance (int): the max distance you allow to consider an interaction
+     :return: boolean
+     '''
     pdb = residue.parent.parent
     other_atoms = []
     for chain in pdb:
@@ -185,24 +168,28 @@ def fast_is_residue_interacting(residue, distance):
         result = ns.search(center= atom.get_coord(), radius=distance)
         if len(result) > 0:
             return True
-
     return False
-
 
 def reconstruct(PDB_list, homolog_chains_dict = {}):
     interactions_dict = all_interactions(PDB_list, homolog_chains_dict)#All known interactions that each chain should have
     new_pdb = copy.deepcopy(PDB_list[0]) #Use one of the inputs as the base to build the macrocomplex
     new_pdb.id = 'Macrocomplex'
     chain_id_dict = {new_pdb.childs[0].get_id(): new_pdb.childs[0].get_id(),
-                     new_pdb.childs[1].get_id(): new_pdb.childs[1].get_id()}
+                        new_pdb.childs[1].get_id(): new_pdb.childs[1].get_id()}
     runing = True
     tmp_count = 0
-
     while runing:  # While at least one chain has a missing interaction /main loop? what if we run out of names?/
         completed_chain = 0
         for chain in new_pdb:
             completed_borders = 0
-            completed_borders += build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_chains_dict, tmp_count)
+            for border in interactions_dict[chain_id_dict[chain.get_id()]]:
+                # Look in the residues known to interact if they actually do (lax is with a broader margin, to have into account litle deviations in the fit
+                confirmed_residues, lax_residues = check_interactions(chain, border)
+                # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
+
+                if confirmed_residues + lax_residues < len(border) or (lax_residues > confirmed_residues and confirmed_residues < (len(border) / 2)):
+                    tmp_count = superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count)
+                completed_borders += 1
 
             if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):
                 completed_chain += 1
@@ -210,39 +197,19 @@ def reconstruct(PDB_list, homolog_chains_dict = {}):
             runing = False
     return new_pdb, chain_id_dict
 
-
-def build_one_chain(interactions_dict, new_pdb, chain, chain_id_dict, homolog_chains_dict, tmp_count):
-    completed_borders = 0
-
-    for border in interactions_dict[chain_id_dict[chain.get_id()]]:
-        # Look in the residues known to interact if they actually do (lax is with a broader margin, to have into account litle deviations in the fit
-        confirmed_residues, lax_residues = check_interactions(chain, border)
-        print(interactions_dict[chain_id_dict[chain.get_id()]])
-        print(chain.get_id())
-        print(confirmed_residues + lax_residues)
-        print(len(border))
-        if confirmed_residues + lax_residues < len(border) or (
-                lax_residues > confirmed_residues and confirmed_residues < (len(
-                border) / 2)):  # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
-            superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count)
-        completed_borders += 1
-    return completed_borders
-
-
 def check_interactions(chain,border):
     confirmed_residues, lax_residues = 0, 0
     for residue_number in border:
-        if fast_is_residue_interacting(chain.get_residue_by_num(residue_number), 3):
+        if fast_is_residue_interacting(chain.get_residue_by_num(residue_number), 4):
             confirmed_residues += 1
-        elif fast_is_residue_interacting(chain.get_residue_by_num(residue_number), 4):
+        elif fast_is_residue_interacting(chain.get_residue_by_num(residue_number), 5):
             lax_residues += 1
     return confirmed_residues, lax_residues
 
-
 def superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count):
     if chain_id_dict[chain.get_id()] in homolog_chains_dict:
-        for i in range(
-                100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+        is_homolog = True
+        for i in range(200):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 homolog_chains_dict[chain_id_dict[chain.get_id()]]])
         print('He usado %s del pdb %s para obtener %s y tapar %s de %s' % (
@@ -250,45 +217,99 @@ def superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_
                 homolog_chains_dict[chain_id_dict[chain.get_id()]]].get_id(),
             interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id,
             interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), border, chain.get_id()))
+
     else:
-        for i in range(
-                100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+        for i in range(100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 chain_id_dict[chain.get_id()]])
         print('He usado %s del pdb %s para obtener %s y tapar %s de %s' % (
-            interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
-                chain_id_dict[chain.get_id()]].get_id(),
+            interactions_dict[chain_id_dict[chain.get_id()]][border].parent[chain_id_dict[chain.get_id()]].get_id(),
             interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id,
             interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), border, chain.get_id()))
     # Add the chain to fill the interaction and track the new name if necessary
-    new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border],
-                                 interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
-                                 track_name=True)
+
+    new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].parent.get_other_chain(chain_id_dict[chain.get_id()]),
+                                    interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), track_name=True)
+    if clash_maker(new_name, new_pdb):
+        new_pdb.childs.pop()
+        new_pdb.restablish_dict()
+        new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border],
+                                     interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
+                                     track_name=True)
+        if clash_maker(new_name, new_pdb):
+            new_pdb.childs.pop()
+            new_pdb.restablish_dict()
+            new_name = 'NADA'
+
     if new_name is None:
         sys.stderr.write("Last obtained structure is part%s.pdb" % tmp_count)
         exit(1)
     else:
         new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
         tmp_count += 1
-        chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()].upper()][border].get_id()
+        chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()
+    return tmp_count
 
+def clash_maker(chain_name, pdb):
+    for other_chain in pdb:
+        if other_chain.get_id() != chain_name:
+            contador, n_of_atoms = 0, 0
+            ns = NeighborSearch(other_chain.get_atoms_list())
+            for atom in pdb[chain_name].iter_atoms():
+                clash = ns.search(atom.get_coord(), radius=1.5)
+                if clash:
+                    contador += 1
+                n_of_atoms += 1
+            if contador > n_of_atoms*0.35:
+                return True
+    return False
+
+def delete_overlapping_chains(pdb):
+    """
+    Looks for clashes between chains and if the clash is big it deletes the latest chain added to the pdb
+    :param pdb: A Protein Structure object
+    """
+    for chain in pdb:
+        to_pop = list()
+        for chain_position in range(len(pdb)):
+            other_chain = pdb.childs[chain_position]
+            contador, n_of_atoms = 0, 0
+            if chain is other_chain:
+                continue
+            ns = NeighborSearch(other_chain.get_atoms_list())
+            for atom in chain.iter_atoms():
+                clash = ns.search(atom.get_coord(), radius=1.5)
+                if len(clash) > 0:
+                    contador += 1
+                n_of_atoms += 1
+            if contador > n_of_atoms*0.35:
+                sys.stderr.write('Chain %s clashes significantly with chain %s so we will delete the latest\n' %(chain.get_id(), other_chain.get_id()))
+                to_pop.append(chain_position)
+        to_pop.sort(reverse=True)
+        for position_to_pop in to_pop:
+            pdb.childs.pop(position_to_pop)
 
 if __name__== '__main__' :
     pdb_list = list()
-    #id_list = ['AC', 'AB'] #hemoglobin
-    #id_list = ['1U', 'MN','LY'] #proteasoma
-    #id_list = ['OP', 'QC', 'CP']
-    id_list = ['1Z','2O','IJ','JI','SR','XQ','ZL','ZU']
-
-    for prot_id in id_list:
-        pdb_list.append(PS(prot_id, 'pdb/%s.pdb' %prot_id))
+    # ---Estos funcionan ---
+    #folder = 'pdb/proteasoma'
+    #folder = 'pdb/deconstruct'
+    #folder = 'pdb/nucl'
+    #folder = 'pdb/hemo_deconstruct'
+    #folder = 'pdb/hemoglobin'
+    # ---Estos no funcionan ---
+    folder = 'pdb/capsid'
+    id_list = os.listdir(folder)
+    for pdb_id in id_list:
+        pdb_list.append(PS(pdb_id, '%s/%s' %(folder, pdb_id)))
+    for pdb in pdb_list:
+        print(pdb.id)
+        pdb.childs[0].id = 'A'
+        pdb.childs[1].id = 'A'
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
     homo_chains = good_chain_names(pdb_list)
-
     new_pdb, chain_id_dict = reconstruct(pdb_list, homo_chains)
-    new_pdb.save_to_file('pdb/vira.pdb')
-
-    pir.superimpose_to_pir(new_pdb, pdb_list, 'kk.pir', chain_id_dict)
-
+    delete_overlapping_chains(new_pdb)
+    new_pdb.save_to_file('pdb/final.pdb')
     print('THE END')
