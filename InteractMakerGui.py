@@ -47,14 +47,22 @@ class MenuBar(tk.Menu):
 
         def save(self):
             """Function to save output into file (provisional)"""
-            out = filedialog.asksaveasfile(title="Save Structure as:", mode='w', defaultextension=".pdb")
-            if out is not None:
-                if self.parent.current_module_name == "Interact Maker":
-                    filename = out.name
-                    if self.parent.current_module.output is not None:
-                        self.parent.current_module.output.save_to_file(filename)
-                out.close()
-
+            if self.parent.current_module_name == "Interact Maker":
+                out = filedialog.asksaveasfile(title="Save Structure as:", mode='w', defaultextension=".pdb")
+                if out is not None:
+                    if self.parent.current_module_name == "Interact Maker":
+                        filename = out.name
+                        if self.parent.current_module.output is not None:
+                            self.parent.current_module.output.save_to_file(filename)
+                    out.close()
+            elif self.parent.current_module_name == "PDB splitter":
+                folder_name = filedialog.askdirectory(title="Select folder to save pdb's")
+                if folder_name:
+                    if not os.path.exists(folder_name):
+                        os.mkdir(folder_name)
+                    for protein in self.master.current_module.protein_list:
+                        path = folder_name + "/" + protein[0].get_id() + ".pdb"
+                        protein.save_to_file(path)
 
 
         def change_module(self,modul):
@@ -62,8 +70,8 @@ class MenuBar(tk.Menu):
             Function that changes the modul frame that is beign displayed.
             Changing module sis fats because we have everything loaded into memory
             """
-            father_modules = {"Interact Maker": self.parent.interact_frame,
-                              "PDB splitter": self.parent.pdbsplit_frame,
+            father_modules = {"Interact Maker": self.parent.interaction_module,
+                              "PDB splitter": self.parent.pdbsplitter,
                               "PDB validator": self.parent.pdbvalidate_frame}
             if self.parent.current_module_name != modul:
                 """
@@ -72,12 +80,9 @@ class MenuBar(tk.Menu):
                 Packing and unpacking is fast because we have all the frames and their children widgets in memory
                 """
                 father_modules[self.parent.current_module_name].pack_forget()
-                self.parent.output_options_frame.pack_forget()
-                self.parent.output_frame.pack_forget()
-                father_modules[modul].pack(fill=tk.X)
-                self.parent.output_options_frame.pack(fill=tk.X)
-                self.parent.output_frame.pack(fill='both', expand=True)
+                father_modules[modul].pack(side=tk.LEFT, anchor=tk.N)
                 self.parent.current_module_name = modul
+                self.parent.current_module = father_modules[modul]
 
         def openfiles(self):
             """ Funnction that open pdb files, it have different behaviour with each modul"""
@@ -85,10 +90,10 @@ class MenuBar(tk.Menu):
             if filename:
                 name = re.search('^.*/(.*)\.pdb', filename)
                 if name:
-                    if self.parent.current_module_name == "Interact Maker":
-                        protein = PS(name.group(1), filename)
-                        # Here we call the loading funciton of the correspondent module
-                        self.parent.current_module.update_proteins([(protein, filename)])
+                    # if self.parent.current_module_name == "Interact Maker":
+                    protein = PS(name.group(1), filename)
+                    # Here we call the loading funciton of the correspondent module
+                    self.parent.current_module.update_proteins([(protein, filename)])
                 else:
                     # This condition should never happen since the files are masked
                     print("Unexpected ERROR when opening file, '^.*/(.*)\.pdb' didn't matched")
@@ -121,6 +126,8 @@ class MatchModule(tk.Frame):
         self.restart = True
         self.running = False
         self.job = None
+        self.is_pymol_open = False
+        self.queue = None
         # Widgets declaration
         self.load_butt = tk.Button(self, text='Load', command=self.master.menu.openfiles)
         self.run_butt = tk.Button(self, text='Run ', command=self.run_v2)
@@ -128,7 +135,7 @@ class MatchModule(tk.Frame):
         self.erase_butt = tk.Button(self, text='Erase', command=self.remove_protein)
         self.info_butt = tk.Button(self, text='Info', command=self.someinfo)
         self.image_butt = tk.Button(self, text='Image', command=self.update_img)
-        self.pymol_butt = tk.Button(self, text='Open in Pymol')
+        self.pymol_butt = tk.Button(self, text='Open in Pymol', command=self.open_in_pymol)
         self.info_label = tk.Label(self, text='Select a option to apply to: None', width=45, anchor=tk.W)
         self.erase_all_butt = tk.Button(self, text="Erase All", command=self.remove_all)
         self.log_label = tk.Label(self)
@@ -151,6 +158,33 @@ class MatchModule(tk.Frame):
         self.log_label.grid(row=8, column=4, sticky=tk.W)
         # Some functionality
         self.protein_display.bind('<<ListboxSelect>>', self.update_info)
+
+    def open_in_pymol(self):
+        prot_indx = self.protein_display.curselection()
+        if prot_indx:
+            prot_indx = int(prot_indx[0])
+            pdb = self.proteins[self.protein_list[prot_indx]]["path"]
+            if not self.is_pymol_open:
+                self.is_pymol_open = True
+                self.log_label['text'] = "Opening in Pymol, please Wait"
+                PymolImageThread(self.queue, pdb)
+                self.queue = queue.Queue()
+                self.job = PymolImageThread(self.queue, pdb, image=False)
+                self.job.start()
+                self.master.after(100, self.process_queue)
+
+    def process_queue(self):
+        try:
+            msg = self.queue.get(0)
+            if msg == "Pymol task finished\n":
+                sys.stdout.write(msg)
+                self.master.current_module.log_label["text"] = "Pymol Closed"
+            else:
+                sys.stderr.write("Pymol not installed properly\n")
+                self.master.current_module.log_label["text"] = "Error while Opening Pymol"
+            self.is_pymol_open = False
+        except queue.Empty:
+            self.master.after(100, self.process_queue)
 
     def update_img(self):
         """Function that changes the current image"""
@@ -382,10 +416,12 @@ class PymolWindow(tk.Frame):
 
 
 class PymolImageThread(threading.Thread):
-    def __init__(self, queue, pdb):
+    def __init__(self, queue, pdb, image=True):
         threading.Thread.__init__(self)
         self.queue = queue
         self.pdb = pdb
+        self.is_image = image
+        self.setDaemon(True)
 
     def run(self):
         """
@@ -393,11 +429,19 @@ class PymolImageThread(threading.Thread):
         for some reason it kills the main thread when it finish and also it does't wait until the process is finished before
         going to the next line.
         """
-        result = subprocess.run(["python", "pymolmanager.py", "%s" % self.pdb])
+        if self.is_image:
+            result = subprocess.run(["python", "pymolmanager.py", "%s" % self.pdb])
+        else:
+            try:
+                result = subprocess.run(["pymol", "%s" % self.pdb])
+            except FileNotFoundError:
+                self.queue.put("Pymol not installed properly\n")
+                return
         if result.returncode == 0:
             self.queue.put("Pymol task finished\n")
         else:
             self.queue.put("Pymol not installed properly\n")
+
 
 
 class OutputOptions(tk.Frame):
@@ -466,9 +510,112 @@ class TextConsole(tk.Text):
 
 class PDBSplit(tk.Frame):
     def __init__(self, parent, master):
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent, padx=10)
         self.parent = parent
         self.master = master
+        self.name = tk.StringVar()
+        self.running = False
+        # Widget Declaration
+        self.log_label = tk.Label(self, width=66)
+        self.info_label = tk.Label(self, text="PDB to Split:\n", width=15)
+        self.output_label = tk.Label(self, text="Unique pairs of interactions")
+        self.split_butt = tk.Button(self, text="Split PDB", command=self.split_thread)
+        self.splited_pdb_list = tk.Listbox(self, height=26)
+        self.send_to_butt = tk.Button(self, text="Send to PDB\nreconstruct", command=self.transfer_proteins)
+        self.save_butt = tk.Button(self, text="Save", command=self.master.menu.save)
+        self.image_butt = tk.Button(self, text="Image", command=self.update_img)
+        self.rename_butt = tk.Button(self, text="Rename", command=self.rename)
+        self.entry = tk.Entry(self, textvariable=self.name, width=10)
+        # Widget Placement
+        self.log_label.grid(row=0, column=0, columnspan=10, sticky=tk.W)
+        self.info_label.grid(row=4, column=0, sticky=tk.W)
+        self.output_label.grid(row=2, column=5)
+        self.split_butt.grid(row=7, column=0)
+        self.splited_pdb_list.grid(row=3, column=5, rowspan=10)
+        self.send_to_butt.grid(row=4, column=7, padx=10)
+        self.save_butt.grid(row=5, column=7)
+        self.image_butt.grid(row=6, column=7)
+        self.rename_butt.grid(row=7, column=7)
+        self.entry.grid(row=8, column=7)
+        # Variables needed
+        self.last_entry_clicked = None
+        self.protein_to_split = None
+        self.protein_path = None
+        self.protein_list = []
+        # Some functionality
+        self.splited_pdb_list.bind('<<ListboxSelect>>', self.update_name)
+
+    def update_img(self):
+        """Function that changes the current image"""
+        prot_indx = self.splited_pdb_list.curselection()
+        if prot_indx:
+            prot_indx = int(prot_indx[0])
+            file_name = self.protein_list[prot_indx][1]
+            self.master.img_display.start_pymol_image_thread(file_name)
+
+    def split_thread(self):
+        if not self.running:
+            if self.protein_to_split is not None:
+                self.running = True
+                self.protein_list = []
+                self.splited_pdb_list.delete(1, tk.END)
+                self.log_label['text'] = "Job Running"
+                SplitPDBThread(self).start()
+            else:
+                self.log_label['text'] = "No proteins Found."
+                sys.stderr.write("No proteins Found.\n")
+
+    def update_name(self, *args):
+        if len(self.protein_list) > 0:
+            prot_indx = self.splited_pdb_list.curselection()
+            if prot_indx:
+                prot_indx = int(prot_indx[0])
+                self.name.set(self.protein_list[prot_indx][0].get_id())
+                self.last_entry_clicked = prot_indx
+
+    def rename(self):
+        if self.last_entry_clicked:
+            prot_indx = self.last_entry_clicked
+            new_name = self.entry.get()
+            old_name = self.protein_list[prot_indx][0].get_id()
+            self.protein_list[prot_indx][0].id = new_name
+            self.splited_pdb_list.delete(prot_indx)
+            self.splited_pdb_list.insert(prot_indx, new_name)
+            sys.stdout.write("Protein %s renamed to %s.\n" % (old_name, new_name))
+
+    def update_proteins(self, protein):
+        """
+        The function have the same name as the inteeractmaker modul because all the load functions expect to found this one
+        """
+        self.protein_to_split = protein[0][0]
+        self.protein_path = protein[0][1]
+        self.info_label['text'] = "PDB to Split:\n%s" % self.protein_to_split.get_id()
+        sys.stdout.write("Protein %s correctly loaded\n" % self.protein_to_split.get_id())
+        if len(protein) > 1:
+            sys.stderr.write("Cannot load multiple pdb to PDB Split module.\nOnly the first one will be loaded.\n")
+            self.log_label['text'] = "Warning, Only one protein can be loaded at the time."
+
+    def transfer_proteins(self):
+        self.master.interaction_module.update_proteins(self.protein_list)
+        sys.stdout.write("Proteins Transferred Successfully.\n")
+        self.log_label["text"] = "Proteins Transferred Successfully."
+
+
+class SplitPDBThread(threading.Thread):
+    def __init__(self, master):
+        threading.Thread.__init__(self)
+        self.master = master
+        self.setDaemon(True)
+
+    def run(self):
+        pdb_list = trans.deconstruct_macrocomplex_by_interactions(self.master.protein_path, "tmp/")
+        self.master.protein_list = [(x, "tmp/%s" % x.get_id()) for x in pdb_list]
+        for protein in pdb_list:
+            self.master.splited_pdb_list.insert(tk.END, protein.get_id())
+        self.master.log_label['text'] = "Job Finished"
+        self.master.running = False
+        sys.stdout.write("Job Finished.\n")
+
 
 class MainW(tk.Tk):
     def __init__(self, parent):
@@ -484,16 +631,16 @@ class MainW(tk.Tk):
         self.output_options_frame = tk.Frame(self, self.parent)
         self.output_frame = tk.Frame(self, self.parent)
         self.interact_frame = tk.Frame(self, self.parent, padx=5, width=807, height=355)
-        self.pdbsplit_frame = tk.Frame(self, self.parent, width=807, height=355)
         self.pdbvalidate_frame = tk.Frame(self, self.parent, bg="blue", width=807, height=355)
         # Container Frames Placement
         self.interact_frame.pack(fill=tk.X)
         self.output_options_frame.pack(fill=tk.X)
         self.output_frame.pack(fill='both', expand=True)
         # Widgets Declaration
-        self.current_module = MatchModule(self.interact_frame, self)
+        self.interaction_module = MatchModule(self.interact_frame, self)
+        self.current_module = self.interaction_module
         self.img_display = PymolWindow(self.interact_frame, self)
-        self.pdbsplitter = PDBSplit(self.pdbsplit_frame, self)
+        self.pdbsplitter = PDBSplit(self.interact_frame, self)
         self.console = TextConsole(self.output_frame, 'stderr', state='disabled')
         self.output_options = OutputOptions(self.output_options_frame, self)
         # Widgets Placement
@@ -513,5 +660,6 @@ if __name__ == "__main__":
     from PDB import ProteinStructure as PS  # Imported here because we have overrode the sys.stderr and stdout channel
     import PDBaligner_up as cmake
     import temporal_cleaner as clean
+    import PDB_trans as trans
     app.mainloop()
     clean.clean_temporal()
