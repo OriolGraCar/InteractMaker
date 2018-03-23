@@ -148,6 +148,9 @@ def all_interactions(pdb_list, homolog_chains_dict = {}):
                         r.setdefault(chain.get_id(), dict())[interacting_res_tuple] = other_chain
                         if chain.get_id() in homolog_chains_dict:
                             r.setdefault(homolog_chains_dict[chain.get_id()], dict())[interacting_res_tuple] = other_chain
+    # In our initial thoughts we didn't want to add this two lines because they induce many wrong supperimposition of chains
+    # that we'll have to filter through clash checking. Nevertheless we didn't find another way to fix the unsolved interactions
+    # that appeared on multiple homolog and asymmetric interactions (very common in, for example, vira campside)
     for homo in homolog_chains_dict:
         r[homo] = r[homolog_chains_dict[homo]]
     #delete_nonsymetryc_interactions_from_dict(r, homolog_chains_dict)
@@ -173,6 +176,27 @@ def fast_is_residue_interacting(residue, distance):
     return False
 
 def reconstruct(PDB_list, homolog_chains_dict = {}):
+    '''
+    Builds a macrocomplex pdb parting from a list of the interactions from a pdb (protein structure object)
+     :param PDB_list: A list of pdb (Protein Structure objects)
+     :param homolog_chains_dict: Default = Empty dict. A dictionary with id transformation for homolog interactions
+     :return: A pdb object with all the interactions completed, a dictionary with the change of names done in the process
+    '''
+
+    '''     
+             Dictionaries explanation (because its quite messy)
+
+         - interactions_dict = A dictionary with the chain id from the basic unique chains and the homologs as primary key. 
+         Each one is a dict with sets of numbers (interacting residues) as key and a pointer to a chain object responsible to 
+         that interaction            
+
+         - chain_id_dict = when we change the name of a chain in our new_pdb because there's already a chain with that name
+         it fills the dictionary with the equivalence. To prevent problems from happening, the chains their id are also in the 
+         dictionary but doing nothing (e.g. {'A':'A'}) 
+
+         -homolog_chains_dict = a dictionary with the following structure {homolog id: original_chain id} used to find the correct 
+         chain in the pdb with homolog interactions
+    '''
     interactions_dict = all_interactions(PDB_list, homolog_chains_dict)#All known interactions that each chain should have
     new_pdb = copy.deepcopy(PDB_list[0]) #Use one of the inputs as the base to build the macrocomplex
     new_pdb.id = 'Macrocomplex'
@@ -187,23 +211,27 @@ def reconstruct(PDB_list, homolog_chains_dict = {}):
             for border in interactions_dict[chain_id_dict[chain.get_id()]]:
                 # Look in the residues known to interact if they actually do (lax is with a broader margin, to have into account litle deviations in the fit
                 confirmed_residues, lax_residues = check_interactions(chain, border)
-                # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
+
+                # If we have un-interacting atoms or the fitting was too bad it tries to fill the border with a chain from the input
                 ok = True
                 if confirmed_residues + lax_residues < len(border) or (lax_residues > confirmed_residues and confirmed_residues < (len(border) / 2)):
-                    tmp_count, ok = superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count)
-                if ok:
+                    tmp_count, ok = fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count)
+                if ok: #If we filled the interaction correctly
                     completed_borders += 1
-            if chain_id_dict[chain.get_id()] in homolog_chains_dict:
-                if completed_borders == len(interactions_dict[homolog_chains_dict[chain_id_dict[chain.get_id()]]]):
-                    completed_chain += 1
-            else:
-                if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):
-                    completed_chain += 1
-        if completed_chain == len(new_pdb):
+            if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):#if we filled all necesary borders
+                completed_chain += 1
+        if completed_chain == len(new_pdb):#if all chains have all interactions filled.
             runing = False
     return new_pdb, chain_id_dict
 
 def check_interactions(chain,border):
+    '''
+    Look if the @chain has all the aminoacids in @border interacting with another chain
+    :param chain: a Chain instance inside a ProteinStructure
+    :param border: a tupple of aminoacid numbers (we'll use it as an identificator)
+    :return:confirmed_residues: number of @chain residues are interacting correctly,
+            lax_residue: number of @chain residues are interacting but too far than they should to (bad superimpossing?)
+    '''
     confirmed_residues, lax_residues = 0, 0
     for residue_number in border:
         if fast_is_residue_interacting(chain.get_residue_by_num(residue_number), 4):
@@ -212,104 +240,103 @@ def check_interactions(chain,border):
             lax_residues += 1
     return confirmed_residues, lax_residues
 
-def superpose(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count):
-    if chain_id_dict[chain.get_id()] in homolog_chains_dict:
-        is_homolog = True
+def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count):
+    '''
+    :param chain: Chain object
+    :param homolog_chains_dict:A dictionary with id transformation for homolog interactions
+    :param interactions_dict:  A dictionary with the chain id from the basic unique chains and the homologs as primary key.
+         Each one is a dict with sets of numbers (interacting residues) as key and a pointer to a chain object responsible to
+         that interaction
+    :param chain_id_dict: A dictionary with the name transformation for chain_id in the new_pdb and the original ones
+    :param new_pdb: ProteinStructure object
+    :param border: Tupple of residue numbers that need to be interacting with another residues but they arent
+    :param tmp_count: a count for the temporal pdb names that track the process everytime a new chain is added
+    :return: tmp_count, boolean ( if the interaction has correctly been filled)
+    '''
+    if chain_id_dict[chain.get_id()] in homolog_chains_dict: #Use chains that are involved in homointeractions as the original
         for i in range(200):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 homolog_chains_dict[chain_id_dict[chain.get_id()]]])
-        print('He usado %s del pdb %s para obtener %s y tapar %s de %s' % (
-            interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
-                homolog_chains_dict[chain_id_dict[chain.get_id()]]].get_id(),
-            interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id,
-            interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), border, chain.get_id()))
-
     else:
         for i in range(100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 chain_id_dict[chain.get_id()]])
-        print('He usado %s del pdb %s para obtener %s y tapar %s de %s' % (
-            interactions_dict[chain_id_dict[chain.get_id()]][border].parent[chain_id_dict[chain.get_id()]].get_id(),
-            interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id,
-            interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), border, chain.get_id()))
-    # Add the chain to fill the interaction and track the new name if necessary
 
-    new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].parent.get_other_chain(chain_id_dict[chain.get_id()]),
+    # Add the chain to fill the interaction and track the new name if necessary. Try different approaches of new chains to attach
+    # and check if they clash, if they do, then pop them (not very efficient but we had the problem with the interaction_dict
+    # mentioned in the function all_interactions thus we have to do it this way
+    new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border],
                                     interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), track_name=True)
-    if clash_maker(new_name, new_pdb):
+    if is_chain_clashing(new_name, new_pdb):#if this chain causes clashes we try the other one of the input and pop this one
         new_pdb.childs.pop()
         new_pdb.restablish_dict()
-        new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border],
+        new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].parent.get_other_chain(chain_id_dict[chain.get_id()]),
                                      interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
                                      track_name=True)
-        if clash_maker(new_name, new_pdb):
+        if is_chain_clashing(new_name, new_pdb):#If this chain also causes clashes mainly means we superimposed the wrong chain? or the fitting wasn't good
             new_pdb.childs.pop()
             new_pdb.restablish_dict()
             new_name = 'NADA'
 
-    if new_name is None:
+    if new_name is None: #if no names can be given it means we've ran out of names to give to the chain so the program finishes abruptly
         sys.stderr.write("Last obtained structure is part%s.pdb" % tmp_count)
         exit(1)
-    elif new_name == 'NADA':
+    elif new_name == 'NADA':#none of the possible chains to add were good (they had clashes)
         tmp_count, False
-    else:
+    else:#everything is fine
         new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
         tmp_count += 1
         chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()
     return tmp_count, True
 
-def clash_maker(chain_name, pdb):
-    for other_chain in pdb:
-        if other_chain.get_id() != chain_name:
-            contador, n_of_atoms = 0, 0
-            ns = NeighborSearch(other_chain.get_atoms_list())
-            for atom in pdb[chain_name].iter_atoms():
-                clash = ns.search(atom.get_coord(), radius=1.5)
-                if clash:
-                    contador += 1
-                n_of_atoms += 1
-            if contador > n_of_atoms*0.35:
-                return True
+def is_chain_clashing(chain_name, pdb):
+    '''
+    :param chain_name (str): chain.id of the chain you want to check clashes of
+    :param pdb: a ProteinStructure instance
+    :return: The position of the chain that clashes with @chain_name on the pdb.childs list, or False (boolean) if no
+    clash found
+    '''
+    for chain_position in range(len(pdb)):
+        other_chain = pdb.childs[chain_position]
+        if other_chain.get_id() == chain_name:
+            continue
+        contador, n_of_atoms = 0, 0
+        ns = NeighborSearch(other_chain.get_atoms_list())
+        for atom in pdb[chain_name].iter_atoms():
+            clash = ns.search(atom.get_coord(), radius=1.5)
+            if clash:
+                contador += 1
+            n_of_atoms += 1
+        if contador > n_of_atoms * 0.25:
+            return chain_position
     return False
-
 def delete_overlapping_chains(pdb):
     """
     Looks for clashes between chains and if the clash is big it deletes the latest chain added to the pdb
     :param pdb: A Protein Structure object
     """
     for chain in pdb:
-        to_pop = list()
-        for chain_position in range(len(pdb)):
-            other_chain = pdb.childs[chain_position]
-            contador, n_of_atoms = 0, 0
-            if chain is other_chain:
-                continue
-            ns = NeighborSearch(other_chain.get_atoms_list())
-            for atom in chain.iter_atoms():
-                clash = ns.search(atom.get_coord(), radius=1.5)
-                if len(clash) > 0:
-                    contador += 1
-                n_of_atoms += 1
-            if contador > n_of_atoms*0.35:
-                sys.stderr.write('Chain %s clashes significantly with chain %s so we will delete the latest\n' %(chain.get_id(), other_chain.get_id()))
-                to_pop.append(chain_position)
-        to_pop.sort(reverse=True)
-        for position_to_pop in to_pop:
+        position_to_pop = is_chain_clashing(chain.get_id(), pdb)
+        if position_to_pop:
+            sys.stderr.write('Chain %s clashes significantly with chain %s so we will delete the latest\n' %(chain.get_id(), pdb[position_to_pop].get_id()))
             pdb.childs.pop(position_to_pop)
 
 if __name__== '__main__' :
     pdb_list = list()
 
     # ---Estos funcionan ---
-    #folder = 'pdb/proteasoma'
-    #folder = 'pdb/deconstruct'
-    #folder = 'pdb/nucl'
-    #folder = 'pdb/hemo_deconstruct'
-    #folder = 'pdb/hemoglobin'
-    #folder = 'pdb/phosphate'
+    folder = 'pdb/proteasoma' #from 1pma.pdb
+    #folder = 'pdb/deconstruct'#from 1pma.pdb
+    #folder = 'pdb/nucl'#from 3kuy.pdb
+    #folder = 'pdb/hemo_deconstruct' #from 1a3n.pdb
+    #folder = 'pdb/hemoglobin' #from 1a3n.pdb
+    #folder = 'pdb/phosphate' #from 2f1d.pdb
+    #folder = 'pdb/actine'#from 6bno.pdb
 
-    # ---Estos no funcionan ---
-    folder = 'pdb/capsid'
+    # ---Estos no funcionan, demomento ---
+    #folder = 'pdb/capsid' #from 1gav.pdb
+    #folder = 'pdb/capsid2'  # from 5wk1.pdb
+
 
 
 
