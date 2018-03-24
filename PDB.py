@@ -252,9 +252,9 @@ class ProteinStructure(BASE):
                     for atom in residue:
                         if atom_name is None or atom.get_name() in atom_name:
                             if atom.occupancy is not None and atom.temp_factor is not None:
-                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f\n" %('ATOM', line_num, atom.name,
+                                out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f           %s\n" %('ATOM', line_num, atom.name,
                                                             residue.name, chain.id, residue.num,round(atom.coords[0],3),
-                                                            atom.coords[1], atom.coords[2],atom.occupancy, atom.temp_factor))
+                                                            atom.coords[1], atom.coords[2],atom.occupancy, atom.temp_factor, atom.name[0]))
                             else:
                                 out_pdb.write("%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f\n" % ('ATOM', line_num, atom.name,
                                                             residue.name, chain.id, residue.num, round(atom.coords[0], 3),
