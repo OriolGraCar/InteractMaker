@@ -9,7 +9,7 @@ import threading
 import queue
 import time
 import subprocess
-
+import BioMacromplex
 
 class Writer(object):
     """This Class is used to override and redirect the stdout and stderr stream to the Tk app"""
@@ -380,7 +380,7 @@ class PymolWindow(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.parent = parent
         self.master = master
-        self.img = ImageTk.PhotoImage(Image.open("virus.jpg").resize((350, 350), Image.ANTIALIAS))
+        self.img = ImageTk.PhotoImage(Image.open(BioMacromplex.module_path+"/virus.jpg").resize((350, 350), Image.ANTIALIAS))
         self.panel = tk.Label(self, image=self.img)
         self.panel.pack()
         self.running = False
@@ -690,9 +690,9 @@ if __name__ == "__main__":
     sys.stderr = Writer(app, 'stderr')
     sys.stdout = Writer(app, 'stdout')
     info_console = Writer(app, "info")
-    from PDB import ProteinStructure as PS  # Imported here because we have overrode the sys.stderr and stdout channel
-    import PDBaligner_up as cmake
-    import temporal_cleaner as clean
-    import PDB_trans as trans
+    from BioMacromplex.PDB import ProteinStructure as PS  # Imported here because we have overrode the sys.stderr and stdout channel
+    import BioMacromplex.PDBaligner as cmake
+    import BioMacromplex.temporal_cleaner as clean
+    import BioMacromplex.PDB_split as trans
     app.mainloop()
     clean.clean_temporal()
