@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import tkinter as tk
 from PIL import ImageTk, Image
 from tkinter import filedialog
@@ -251,8 +253,8 @@ class MatchModule(tk.Frame):
                 for residue in chain:
                     atom_counter += len(residue)
                     total_atoms += len(residue)
-                info_console.write(" and %s Atoms\n" % atom_counter)
-            info_console.write("Total:\n%s Residues and %s Atoms\n" % (total_residues, total_atoms))
+                info_console.write(", %s Atoms and weights %s Daltons \n" % (atom_counter,chain.get_mw()))
+            info_console.write("Total:\n%s Residues, %s Atoms and weights %s Daltons\n" % (total_residues, total_atoms, prot_obj.get_mw()))
 
     def run_v2(self):
         """
@@ -345,7 +347,7 @@ class ReconstructComplex(threading.Thread):
                 border = self.current_border_list[self.completed_borders]
                 if self.interactions_checked:
                     if self.confirmed_residues + self.lax_residues < len(border) or (self.lax_residues > self.confirmed_residues and self.confirmed_residues < (len(border) / 2)):  # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
-                        cmake.superpose(chain, self.homo_chains, self.interactions_dict, self.chain_id_dict, self.new_pdb, border, self.tmp_count)
+                        cmake.fill_interaction(chain, self.homo_chains, self.interactions_dict, self.chain_id_dict, self.new_pdb, border, self.tmp_count, verbose=True, save_steps=True)
                         self.master.update_proteins([(self.new_pdb, 'tmp/part%s.pdb' % self.tmp_count)])
                     self.completed_borders += 1
                     self.interactions_checked = False
