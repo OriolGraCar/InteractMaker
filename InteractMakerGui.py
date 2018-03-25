@@ -9,7 +9,7 @@ import threading
 import queue
 import time
 import subprocess
-import BioMacromplex
+
 
 class Writer(object):
     """This Class is used to override and redirect the stdout and stderr stream to the Tk app"""
@@ -345,7 +345,7 @@ class ReconstructComplex(threading.Thread):
                 border = self.current_border_list[self.completed_borders]
                 if self.interactions_checked:
                     if self.confirmed_residues + self.lax_residues < len(border) or (self.lax_residues > self.confirmed_residues and self.confirmed_residues < (len(border) / 2)):  # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
-                        cmake.fill_interaction(chain, self.homo_chains, self.interactions_dict, self.chain_id_dict, self.new_pdb, border, self.tmp_count)
+                        cmake.superpose(chain, self.homo_chains, self.interactions_dict, self.chain_id_dict, self.new_pdb, border, self.tmp_count)
                         self.master.update_proteins([(self.new_pdb, 'tmp/part%s.pdb' % self.tmp_count)])
                     self.completed_borders += 1
                     self.interactions_checked = False
@@ -380,7 +380,7 @@ class PymolWindow(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.parent = parent
         self.master = master
-        self.img = ImageTk.PhotoImage(Image.open(BioMacromplex.module_path+"/virus.jpg").resize((350, 350), Image.ANTIALIAS))
+        self.img = ImageTk.PhotoImage(Image.open("virus.jpg").resize((350, 350), Image.ANTIALIAS))
         self.panel = tk.Label(self, image=self.img)
         self.panel.pack()
         self.running = False
@@ -515,6 +515,7 @@ class PDBSplit(tk.Frame):
         self.master = master
         self.name = tk.StringVar()
         self.running = False
+        self.window = None
         # Widget Declaration
         self.log_label = tk.Label(self, width=66)
         self.info_label = tk.Label(self, text="PDB to Split:\n", width=15)
@@ -583,22 +584,54 @@ class PDBSplit(tk.Frame):
             self.splited_pdb_list.insert(prot_indx, new_name)
             sys.stdout.write("Protein %s renamed to %s.\n" % (old_name, new_name))
 
+    def create_loading_window(self):
+        self.window = PopUpLoadWindow(self)
+
     def update_proteins(self, protein):
         """
         The function have the same name as the inteeractmaker modul because all the load functions expect to found this one
         """
-        self.protein_to_split = protein[0][0]
-        self.protein_path = protein[0][1]
-        self.info_label['text'] = "PDB to Split:\n%s" % self.protein_to_split.get_id()
-        sys.stdout.write("Protein %s correctly loaded\n" % self.protein_to_split.get_id())
         if len(protein) > 1:
-            sys.stderr.write("Cannot load multiple pdb to PDB Split module.\nOnly the first one will be loaded.\n")
+            sys.stderr.write("Cannot load multiple pdb to PDB Split module.\nSelect one to load.\n")
             self.log_label['text'] = "Warning, Only one protein can be loaded at the time."
+            self.create_loading_window()
+            for entry in protein:
+                self.window.listbox.insert(tk.END, entry[0].get_id())
+                self.window.protein_list.append(entry)
+        elif len(protein) == 1:
+            self.protein_to_split = protein[0][0]
+            self.protein_path = protein[0][1]
+            self.info_label['text'] = "PDB to Split:\n%s" % self.protein_to_split.get_id()
+            self.log_label['text'] = "Protein %s correctly loaded." % self.protein_to_split.get_id()
+            sys.stdout.write("Protein %s correctly loaded\n" % self.protein_to_split.get_id())
 
     def transfer_proteins(self):
         self.master.interaction_module.update_proteins(self.protein_list)
         sys.stdout.write("Proteins Transferred Successfully.\n")
         self.log_label["text"] = "Proteins Transferred Successfully."
+
+
+class PopUpLoadWindow(tk.Toplevel):
+    def __init__(self, parent):
+        tk.Toplevel.__init__(self, parent)
+        self.parent = parent
+        self.title("Loading Window")
+        self.protein_list = []
+        # Widgets declaration and placement
+        self.info_label = tk.Label(self, text="Choose which protein to load.")
+        self.listbox = tk.Listbox(self)
+        self.load_butt = tk.Button(self, text="Load", command=self.load_prots)
+        self.info_label.pack()
+        self.listbox.pack()
+        self.load_butt.pack()
+
+    def load_prots(self):
+        prot_indx = self.listbox.curselection()
+        if prot_indx:
+            prot_indx = int(prot_indx[0])
+            self.parent.update_proteins([self.protein_list[prot_indx]])
+            self.destroy()
+
 
 
 class SplitPDBThread(threading.Thread):
@@ -657,9 +690,9 @@ if __name__ == "__main__":
     sys.stderr = Writer(app, 'stderr')
     sys.stdout = Writer(app, 'stdout')
     info_console = Writer(app, "info")
-    from BioMacromplex.PDB import ProteinStructure as PS  # Imported here because we have overrode the sys.stderr and stdout channel
-    import BioMacromplex.PDBaligner as cmake
-    import BioMacromplex.temporal_cleaner as clean
-    import BioMacromplex.PDB_split as trans
+    from PDB import ProteinStructure as PS  # Imported here because we have overrode the sys.stderr and stdout channel
+    import PDBaligner_up as cmake
+    import temporal_cleaner as clean
+    import PDB_trans as trans
     app.mainloop()
     clean.clean_temporal()
