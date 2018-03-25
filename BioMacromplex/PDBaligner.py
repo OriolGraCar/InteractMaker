@@ -252,11 +252,11 @@ def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dic
     :return: tmp_count, boolean ( if the interaction has correctly been filled)
     '''
     if chain_id_dict[chain.get_id()] in homolog_chains_dict: #Use chains that are involved in homointeractions as the original
-        for i in range(200):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+        for i in range(20):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 homolog_chains_dict[chain_id_dict[chain.get_id()]]])
     else:
-        for i in range(100):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+        for i in range(20):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 chain_id_dict[chain.get_id()]])
 
@@ -269,7 +269,7 @@ def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dic
         new_pdb.childs.pop()
         new_pdb.restablish_dict()
         if verbose:
-            print('The chain %s recently added produced clashes with another chain so it has been deleted' %new_name)
+            sys.stderr.write('The chain %s recently added produced clashes with another chain so it has been deleted\n' %new_name)
         new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].parent.get_other_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()),
                                      interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
                                      track_name=True, verbose=verbose)
@@ -277,15 +277,11 @@ def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dic
             new_pdb.childs.pop()
             new_pdb.restablish_dict()
             if verbose:
-                sys.stderr.write('The chain %s recently added produced clashes with another chain so it has been deleted' % new_name)
+                sys.stderr.write('The chain %s recently added produced clashes with another chain so it has been deleted\n' % new_name)
             new_name = 'NADA'
         elif verbose:
-            print('The %s chain from the %s has been added to fulfill the interaction of the following residues %s of chain %s' % (
+            print('The chain %s from the %s has been added to fulfill the interaction of the following residues %s of chain %s' % (
                 interactions_dict[chain_id_dict[chain.get_id()]][border].parent.get_other_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()).get_id(),
-                interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id, border, chain.get_id()))
-    elif verbose:
-        print('The %s chain from the %s has been added to fulfill the interaction of the following residues %s of chain %s' % (
-                interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
                 interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id, border, chain.get_id()))
     if new_name is None: #if no names can be given it means we've ran out of names to give to the chain so the program finishes abruptly
         sys.stderr.write("Last obtained structure is part%s.pdb" % tmp_count)

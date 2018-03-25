@@ -388,14 +388,16 @@ class Residue(BASE):
         for aa in res_list:
             a.append(Atom(aa))
         return a
-    def backbone(self):
+    def backbone(self, permission = False, bb = ['C', 'N', 'O', 'CA']):
         """Returns a list with the backbone atoms of the residue (Carbon, Nitrogen, Oxigen and Alfa Carbon)"""
         r = list()
-        bb = ['C', 'N', 'O', 'CA']
-        for element in bb:
-            if element in self.child_dict:
-                r.append(self[element])
-        return r
+        if permission:
+            for element in bb:
+                if element in self.child_dict:
+                    r.append(self[element])
+            return r
+        else:
+            return [self['C'], self['N'],self['O'],self['CA']]
     def get_atoms(self):
         """Returns a list of atoms"""
         return self.childs
