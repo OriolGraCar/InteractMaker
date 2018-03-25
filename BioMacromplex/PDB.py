@@ -146,7 +146,7 @@ class ProteinStructure(BASE):
         for chain in self:
             if chain.get_id() is not chain_id:
                 return chain
-    def add_chain(self, nw_chain, cid, track_name = False, big_id = True):
+    def add_chain(self, nw_chain, cid, track_name = False, big_id = True, verbose = False):
         """
             Adds the input chain object to the Structure.
 
@@ -176,7 +176,8 @@ class ProteinStructure(BASE):
                 exit(1)
                 return None
             else:
-                stderr.write('WARNING!: Tried to add a chain to %s with an already existing Chain id (%s). I will try to change it to %s.\n' %(cid , self.id, nw_id))
+                if verbose:
+                    stderr.write('WARNING!: Tried to add a chain to %s with an already existing Chain id (%s). I will try to change it to %s.\n' %(cid , self.id, nw_id))
                 cid = self.add_chain(nw_chain, nw_id, track_name= track_name)
         else:
             my_nw_chain = copy.deepcopy(nw_chain)

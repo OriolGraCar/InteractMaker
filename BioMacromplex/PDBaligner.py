@@ -173,7 +173,7 @@ def fast_is_residue_interacting(residue, distance):
             return True
     return False
 
-def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}):
+def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}, verbose = False, steps = False):
     '''
     Builds a macrocomplex pdb parting from a list of the interactions from a pdb (protein structure object)
      :param PDB_list: A list of pdb (Protein Structure objects)
@@ -213,7 +213,7 @@ def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}):
                 # If we have un-interacting atoms or the fitting was too bad it tries to fill the border with a chain from the input
                 ok = True
                 if confirmed_residues + lax_residues < len(border) or (lax_residues > confirmed_residues and confirmed_residues < (len(border) / 2)):
-                    tmp_count, ok = fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count)
+                    tmp_count, ok = fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count, verbose = verbose, save_steps= steps)
                 if ok: #If we filled the interaction correctly
                     completed_borders += 1
             if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):#if we filled all necesary borders
@@ -238,7 +238,7 @@ def check_interactions(chain,border):
             lax_residues += 1
     return confirmed_residues, lax_residues
 
-def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count):
+def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count, verbose = False, save_steps = False):
     '''
     :param chain: Chain object
     :param homolog_chains_dict:A dictionary with id transformation for homolog interactions
@@ -264,26 +264,38 @@ def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dic
     # and check if they clash, if they do, then pop them (not very efficient but we had the problem with the interaction_dict
     # mentioned in the function all_interactions thus we have to do it this way
     new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border],
-                                    interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), track_name=True)
+                                    interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(), track_name=True, verbose=verbose)
     if is_chain_clashing(new_name, new_pdb):#if this chain causes clashes we try the other one of the input and pop this one
         new_pdb.childs.pop()
         new_pdb.restablish_dict()
+        if verbose:
+            print('The chain %s recently added produced clashes with another chain so it has been deleted' %new_name)
         new_name = new_pdb.add_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].parent.get_other_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()),
                                      interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
-                                     track_name=True)
+                                     track_name=True, verbose=verbose)
         if is_chain_clashing(new_name, new_pdb):#If this chain also causes clashes mainly means we superimposed the wrong chain? or the fitting wasn't good
             new_pdb.childs.pop()
             new_pdb.restablish_dict()
+            if verbose:
+                sys.stderr.write('The chain %s recently added produced clashes with another chain so it has been deleted' % new_name)
             new_name = 'NADA'
-
+        elif verbose:
+            print('The %s chain from the %s has been added to fulfill the interaction of the following residues %s of chain %s' % (
+                interactions_dict[chain_id_dict[chain.get_id()]][border].parent.get_other_chain(interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()).get_id(),
+                interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id, border, chain.get_id()))
+    elif verbose:
+        print('The %s chain from the %s has been added to fulfill the interaction of the following residues %s of chain %s' % (
+                interactions_dict[chain_id_dict[chain.get_id()]][border].get_id(),
+                interactions_dict[chain_id_dict[chain.get_id()]][border].parent.id, border, chain.get_id()))
     if new_name is None: #if no names can be given it means we've ran out of names to give to the chain so the program finishes abruptly
         sys.stderr.write("Last obtained structure is part%s.pdb" % tmp_count)
         exit(1)
     elif new_name == 'NADA':#none of the possible chains to add were good (they had clashes)
         tmp_count, False
     else:#everything is fine
-        new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
-        tmp_count += 1
+        if save_steps:
+            new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
+            tmp_count += 1
         chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()
     return tmp_count, True
 
@@ -308,7 +320,7 @@ def is_chain_clashing(chain_name, pdb):
         if contador > n_of_atoms * 0.10:
             return chain_position
     return False
-def delete_overlapping_chains(pdb):
+def delete_overlapping_chains(pdb, verbose = False):
     """
     Looks for clashes between chains and if the clash is big it deletes the latest chain added to the pdb
     :param pdb: A Protein Structure object
@@ -316,7 +328,8 @@ def delete_overlapping_chains(pdb):
     for chain in pdb:
         position_to_pop = is_chain_clashing(chain.get_id(), pdb)
         if position_to_pop:
-            sys.stderr.write('Chain %s clashes significantly with chain %s so we will delete the latest\n' %(chain.get_id(), pdb.childs[position_to_pop].get_id()))
+            if verbose:
+                sys.stderr.write('Chain %s clashes significantly with chain %s so we will delete the latest\n' %(chain.get_id(), pdb.childs[position_to_pop].get_id()))
             pdb.childs.pop(position_to_pop)
 
 if __name__== '__main__' :
