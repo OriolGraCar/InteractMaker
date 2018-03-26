@@ -1,9 +1,9 @@
-from BioMacromplex.PDB import ProteinStructure as PS
+# -*- coding: utf-8 -*-
+
 from Bio.PDB import Superimposer, NeighborSearch
 import copy
 from Bio.pairwise2 import align, format_alignment
 import sys
-from random import shuffle
 
 
 def find_common_atoms(chain_fix, chain_mov):
@@ -205,6 +205,8 @@ def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}, verbose = False
     new_pdb.id = 'Macrocomplex'
     chain_id_dict = {new_pdb.childs[0].get_id(): new_pdb.childs[0].get_id(),
                         new_pdb.childs[1].get_id(): new_pdb.childs[1].get_id()}
+    if verbose:
+        print('The %s.pdb is used as seed to construct the Macrocomplex' %PDB_list[0].get_id())
     runing = True
     tmp_count = 0
     while runing:  # While at least one chain has a missing interaction /main loop? what if we run out of names?/
