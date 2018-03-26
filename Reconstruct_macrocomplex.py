@@ -68,14 +68,15 @@ if opt.verbose:
     print('-------------------------------------------------')
     print('\n%s diferent interactions have been provided of which %s where valid.\n' %(len(id_list), len(pdb_list)))
 
-#shuffle(pdb_list)
+shuffle(pdb_list)
 if opt.tmp_steps:
-    print('All new states of the macrocomplex will be saved in tmp/ with the name of partX, where X is the ordinal step when a chain was added.\n')
+    print('All new states of the macrocomplex will be saved in tmp/ with the name \nof partX, where X is the ordinal step when a chain was added.\n')
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
 homo_chains = good_chain_names(pdb_list)
 new_pdb, chain_id_dict = reconstruct_macrocomplex(pdb_list, homo_chains, verbose = opt.verbose, steps = opt.tmp_steps)
 delete_overlapping_chains(new_pdb, verbose = opt.verbose)
 new_pdb.save_to_file(opt.output_pdb)
+
 print('The END')
 
