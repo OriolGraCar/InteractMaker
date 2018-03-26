@@ -231,6 +231,20 @@ class ProteinStructure(BASE):
                             contador_de_clashes += 1
                     if contador_de_clashes > 0:
                         stderr.write("The chain %s has %s atoms clashing with chain %s in the pdb %s" %(chain.get_id(), contador_de_clashes, other_chain.get_id(), self.parent.get_id()))
+    def print_pdb_info(self):
+        """Prints default information about the Protein Structure"""
+        print("The %s has:\n%s Chains\n" % (self.get_id(), len(self)))
+        total_residues = 0
+        total_atoms = 0
+        for chain in self:
+            atom_counter = 0
+            total_residues += len(chain)
+            print("\tChain %s has:\n\t\t%s Residues" % (chain.get_id(), len(chain)))
+            for residue in chain:
+                atom_counter += len(residue)
+                total_atoms += len(residue)
+            print("\t\t%s Atoms and \n\t\tweights %s Daltons \n" % (atom_counter, chain.get_mw()))
+        print("Total:\n%s Residues, %s Atoms and weights %s Daltons\n" % (total_residues, total_atoms, self.get_mw()))
     def save_fasta(self, outfile):
         """Saves the sequence of all the chains in the pdb """
         with open(outfile, "w") as out_fa:
