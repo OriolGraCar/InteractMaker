@@ -28,8 +28,12 @@ def find_common_atoms(chain_fix, chain_mov):
         if alignment[0][1][i] == '-':
             count_move -= 1
         elif alignment[0][0][i] != '-' and alignment[0][1][i] != '-':
-            atoms_fix.extend(chain_fix.childs[i + count_fix].backbone())
-            atoms_mov.extend(chain_mov.childs[i + count_move].backbone())
+            try:
+                atoms_fix.extend(chain_fix.childs[i + count_fix].backbone())
+                atoms_mov.extend(chain_mov.childs[i + count_move].backbone())
+            except:
+                atoms_fix.extend(chain_fix.childs[i + count_fix].backbone(True, 'C'))
+                atoms_mov.extend(chain_mov.childs[i + count_move].backbone(True, 'C'))
     #print(format_alignment(*alignment[0]))
     return atoms_fix, atoms_mov
 
@@ -161,16 +165,17 @@ def fast_is_residue_interacting(residue, distance):
      :param distance (int): the max distance you allow to consider an interaction
      :return: boolean
      '''
-    pdb = residue.parent.parent
-    other_atoms = []
-    for chain in pdb:
-        if chain is not residue.parent:
-            other_atoms.extend(chain.get_atoms_list())
-    ns = NeighborSearch(other_atoms)
-    for atom in residue:
-        result = ns.search(center= atom.get_coord(), radius=distance)
-        if len(result) > 0:
-            return True
+    if residue is not None:
+        pdb = residue.parent.parent
+        other_atoms = []
+        for chain in pdb:
+            if chain is not residue.parent:
+                other_atoms.extend(chain.get_atoms_list())
+        ns = NeighborSearch(other_atoms)
+        for atom in residue:
+            result = ns.search(center= atom.get_coord(), radius=distance)
+            if len(result) > 0:
+                return True
     return False
 
 def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}, verbose = False, steps = False):
