@@ -8,6 +8,7 @@ from random import shuffle
 import os
 import sys
 import re
+import datetime
 
 
 # ---Estos funcionan ---
@@ -31,6 +32,8 @@ parser.add_argument("-o", dest="output_pdb", action = "store", type = str, defau
 parser.add_argument('-v', '--verbose', dest = 'verbose', action = "store_true", default = False, help = "Print the progress of the program and the log")
 parser.add_argument('-s', '--steps', dest = 'tmp_steps', action = "store_true", default= False, help = "Save a temporary pdb in tmp/ each time a chain is added to track the process")
 opt = parser.parse_args()
+if opt.verbose:
+    initial_time = datetime.datetime.now()
 
 #Parse the pdb files of the input folder into a list of Protein Structure intances
 pdb_list = list()
@@ -76,6 +79,10 @@ if opt.tmp_steps:
 homo_chains = good_chain_names(pdb_list)
 new_pdb, chain_id_dict = reconstruct_macrocomplex(pdb_list, homo_chains, verbose = opt.verbose, steps = opt.tmp_steps)
 delete_overlapping_chains(new_pdb, verbose = opt.verbose)
+if opt.verbose:
+    print('\n\nThe Macrocomplex is saved in %s and has the following characteristics: ' %opt.output_pdb)
+    new_pdb.print_pdb_info()
+    print('Time spent: %s' %(datetime.datetime.now() - initial_time))
 new_pdb.save_to_file(opt.output_pdb)
 
 print('The END')
