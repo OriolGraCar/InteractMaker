@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# -*- coding: utf-8 -*-
 
 from argparse import ArgumentParser
 from BioMacromplex.PDBaligner import good_chain_names, reconstruct_macrocomplex, delete_overlapping_chains
@@ -71,7 +71,7 @@ if opt.verbose:
     print('-------------------------------------------------')
     print('\n%s diferent interactions have been provided of which %s where valid.\n' %(len(id_list), len(pdb_list)))
 
-shuffle(pdb_list)
+#shuffle(pdb_list)
 if opt.tmp_steps:
     print('All new states of the macrocomplex will be saved in tmp/ with the name \nof partX, where X is the ordinal step when a chain was added.\n')
     if not os.path.exists('tmp'):
