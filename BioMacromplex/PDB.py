@@ -1,4 +1,5 @@
 #!/bin/env python3
+# -*- coding: utf-8 -*-
 
 from BioMacromplex.Sequences import *
 from Bio.PDB import protein_letters_3to1
