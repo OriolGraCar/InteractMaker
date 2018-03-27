@@ -17,5 +17,6 @@ setup(
     url='https://github.com/OriolGraCar/InteractMaker',
     description='',
     long_description=readme,
-    requires=requirements
+    requires=requirements,
+    packages = ['BioMacromplex']
 )
