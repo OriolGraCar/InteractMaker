@@ -25,6 +25,7 @@ Notice that the package has the following dependencies:
 	- numpy
 	- TKinter
 	- pymol
+	- argparse
 
 To install the package of pymol as an API for python there are many ways; the easiest one is having the conda package manager and installing it through the followin repo.
 
@@ -32,10 +33,31 @@ To install the package of pymol as an API for python there are many ways; the ea
     conda install -c samoturk pymol
 ```
 
+## Usage
+
+#### Stand-alone
+```bash
+    $ ./Reconstruct_macrocomplex.py -h
 
 
+    usage: Reconstruct_macrocomplex.py [-h] -i FOLDER [-o OUTPUT_PDB] [-v] [-s]
 
-Based on // References
+./Reconstruct_macrocomplex.py is a script that uses the BioMacromplex module
+to reconstruct Protein, DNA or RNA complexes through a set of interactions in
+pdb format.
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -i FOLDER      Path to a folder where pdb are stored
+  -o OUTPUT_PDB  Output file where the macrocomplex pdb will be stored
+  -v, --verbose  Print the progress of the program and the log
+  -s, --steps    Save a temporary pdb in tmp/ each time a chain is added to
+                 track the process
+
+```
+
+
+## References
 
 Hidrogen bond distance as 3.5 A
 
