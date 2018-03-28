@@ -1,7 +1,7 @@
 # BioMacromplex
 
 
-##How to install
+## How to install
 
 Download the git folder on the directory you want
 
@@ -14,7 +14,7 @@ Then check the BioMacromplex directory is here and also a script called setup.py
 To be able to use the script *Reconstruct_macrocomplex.py* anywhere you'll need to install the package in your python site-packages.
 
 ```bash
-    python3 setup.py install
+	python3 setup.py install
 ```
 
 Notice that the package has the following dependencies:
