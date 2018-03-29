@@ -63,7 +63,7 @@ optional arguments:
 
 Here we'll present a some examples macrocomplex that we have used as test subjects for the realization of the package and scripts (they are not the only examples we have used, tho).
 
-#### Proteasoma (1pma.pdb)
+#### Proteasoma (1pma.pdb) in command line
 
 The first step is to obtain the pdb with the interactions between the pair of chains. You can do it either manually chosing the chains that will go in each pdb file or use our tools for it (either the GUI with PDB_split or the PDB_split.py as a script instead of a module).
 
@@ -91,6 +91,18 @@ The END
 ```
 
 With this the process will be finished and the macrocomplex in our specified directory.
+
+#### El que vulguis, oriol with the GUI
+
+
+
+#### Other examples in test/
+
+In the test folder you can find also some other test macrocomplexes that can be used as toy models with the interactions already extracted:
+	- A Phosphate dehydratase (2f1d.pdb) in test/phosphate/
+	- A Nucleosoma (3kuy.pdb) in test/nucl
+	- An ATP-syntasa (5kw1.pdb) in test/ATP
+	- An Hemoglobin (1a3n.pdb) in test/hemoglobin
 
 ## References
 
