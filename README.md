@@ -25,7 +25,6 @@ Notice that the package has the following dependencies:
 	- numpy
 	- TKinter
 	- pymol
-	- argparse
 
 To install the package of pymol as an API for python there are many ways; the easiest one is having the conda package manager and installing it through the followin repo.
 
@@ -41,10 +40,11 @@ To install the package of pymol as an API for python there are many ways; the ea
     $ ./Reconstruct_macrocomplex.py -h
 
 usage: Reconstruct_macrocomplex.py [-h] -i FOLDER [-o OUTPUT_PDB] [-v] [-s]
+                                   [-q]
 
-./Reconstruct_macrocomplex.py is a script that uses the BioMacromplex module
-to reconstruct Protein, DNA or RNA complexes through a set of interactions in
-pdb format.
+Reconstruct_macrocomplex.py is a script that uses the BioMacromplex module to
+reconstruct Protein, DNA or RNA complexes through a set of interactions in pdb
+format.
 
 optional arguments:
   -h, --help     show this help message and exit
@@ -53,14 +53,48 @@ optional arguments:
   -v, --verbose  Print the progress of the program and the log
   -s, --steps    Save a temporary pdb in tmp/ each time a chain is added to
                  track the process
+  -q, --quiet    Stores standard output and error in /dev/null/
 
 ```
 
 #### GUI
 
+## Examples
+
+Here we'll present a some examples macrocomplex that we have used as test subjects for the realization of the package and scripts (they are not the only examples we have used, tho).
+
+#### Proteasoma (1pma.pdb)
+
+The first step is to obtain the pdb with the interactions between the pair of chains. You can do it either manually chosing the chains that will go in each pdb file or use our tools for it (either the GUI with PDB_split or the PDB_split.py as a script instead of a module).
+
+In this case we will use the latest:
+```bash
+    $ python3 BioMacromplex/PDB_split.py test/1pma.pdb test/proteasoma
+    
+    $ ls test/proteasoma
+
+1U.pdb  2O.pdb  2S.pdb  FE.pdb  SE.pdb  UB.pdb
+```
+
+As you can see we have created six pdb in the *test/proteasoma* directory, each one defining an interaction (in fact not all six interactions are needed for the program to work, in this case with 1U.pdb, 2O.pdb & FE.pdb would suffice ). 
+
+Then we can proceed to *Reconstruct the macrocomplex*:
+```bash
+    $ python3 Reconstruct_macrocomplex.py -i test/proteasoma -o test/reconstructed_proteasoma.pdb
+
+WARNING!: Chain O in pdb 2O doesn't start in residue 1
+WARNING!: Chain E in pdb SE doesn't start in residue 1
+WARNING!: Chain E in pdb FE doesn't start in residue 1
+WARNING!: Chain F in pdb FE doesn't start in residue 1
+The END
+
+```
+
+With this the process will be finished and the macrocomplex in our specified directory.
+
 ## References
 
-Hidrogen bond distance as 3.5 A
+Hidrogen bond distance taken as 3.5A so it will be the distance managed by the scripts in the pagackes to find and check interactions between different molecules.
 
-  Martz, Eric; Help, Index & Glossary for Protein Explorer, http://www.umass.edu/microbio/chime/pe_beta/pe/protexpl/igloss.htm
-  Jeffrey, George A.; An introduction to hydrogen bonding, Oxford University Press, 1997.
+Martz, Eric; Help, Index & Glossary for Protein Explorer, http://www.umass.edu/microbio/chime/pe_beta/pe/protexpl/igloss.htm
+Jeffrey, George A.; An introduction to hydrogen bonding, Oxford University Press, 1997.
