@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from argparse import ArgumentParser
-from BioMacromplex.PDBaligner import good_chain_names, reconstruct_macrocomplex, delete_overlapping_chains
-from BioMacromplex.PDB import ProteinStructure as PS
 from random import shuffle
 import os
 import sys
@@ -20,6 +18,7 @@ import datetime
 # folder = 'pdb/phosphate'  # from 2f1d.pdb
 # folder = 'pdb/actine'#from 6bno.pdb
 # folder = 'pdb/capsid2'  # from 5wk1.pdb
+# folder = 'pdb/ribosoma' # from 4v4a-pdb-bundle1.pdb que nos ha dejado Aida
 
 # ---Estos no funcionan, demomento ---
 # folder = 'pdb/capsid' #from 1gav.pdb
@@ -27,14 +26,25 @@ import datetime
 
 #Arguments
 parser = ArgumentParser(description='%s is a script that uses the BioMacromplex module to reconstruct Protein, DNA or RNA complexes through a set of interactions in pdb format.' %sys.argv[0])
+talk = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", dest= "folder", action = "store", type = str, help = "Path to a folder where pdb are stored", required = True)
 parser.add_argument("-o", dest="output_pdb", action = "store", type = str, default='macrocomplex.pdb', help = "Output file where the macrocomplex pdb will be stored")
-parser.add_argument('-v', '--verbose', dest = 'verbose', action = "store_true", default = False, help = "Print the progress of the program and the log")
+talk.add_argument('-v', '--verbose', dest = 'verbose', action = "store_true", default = False, help = "Print the progress of the program and the log")
 parser.add_argument('-s', '--steps', dest = 'tmp_steps', action = "store_true", default= False, help = "Save a temporary pdb in tmp/ each time a chain is added to track the process")
+talk.add_argument('-q', '--quiet', dest = 'quiet', action = "store_true", default= False, help = "Stores standard output and error in /dev/null/")
 opt = parser.parse_args()
+
+if opt.quiet:
+    f = open(os.devnull, 'w')
+    sys.stderr = f
+    sys.stdout = f
+
+#Import the BioMacromplex modules here to be afected by the stderr and out redirection
+from BioMacromplex.PDBaligner import good_chain_names, reconstruct_macrocomplex, delete_overlapping_chains
+from BioMacromplex.PDB import ProteinStructure as PS
+
 if opt.verbose:
     initial_time = datetime.datetime.now()
-
 #Parse the pdb files of the input folder into a list of Protein Structure intances
 pdb_list = list()
 if not os.path.isdir(opt.folder):
