@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import tkinter as tk
+from tkinter import messagebox
 from PIL import ImageTk, Image
 from tkinter import filedialog
 import re
@@ -12,6 +13,8 @@ import queue
 import time
 import subprocess
 import BioMacromplex
+import shutil
+
 
 class Writer(object):
     """This Class is used to override and redirect the stdout and stderr stream to the Tk app"""
@@ -37,7 +40,7 @@ class MenuBar(tk.Menu):
             self.filemenu.add_command(label="Open Folder", command=self.opendir)
             self.filemenu.add_command(label="Save", command=self.save)
             self.filemenu.add_separator()
-            self.filemenu.add_command(label="Exit", command=self.parent.quit)
+            self.filemenu.add_command(label="Exit", command=shut_down)
             # Options for Modulemenu
             self.modulemenu.add_command(label="Interact Maker", command=lambda x="Interact Maker": self.change_module(x))
             self.modulemenu.add_command(label="PDB splitter", command=lambda x="PDB splitter": self.change_module(x))
@@ -64,7 +67,7 @@ class MenuBar(tk.Menu):
                         os.mkdir(folder_name)
                     for protein in self.master.current_module.protein_list:
                         path = folder_name + "/" + protein[0].get_id() + ".pdb"
-                        protein.save_to_file(path)
+                        protein[0].save_to_file(path)
 
 
         def change_module(self,modul):
@@ -347,8 +350,9 @@ class ReconstructComplex(threading.Thread):
                 border = self.current_border_list[self.completed_borders]
                 if self.interactions_checked:
                     if self.confirmed_residues + self.lax_residues < len(border) or (self.lax_residues > self.confirmed_residues and self.confirmed_residues < (len(border) / 2)):  # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
-                        cmake.fill_interaction(chain, self.homo_chains, self.interactions_dict, self.chain_id_dict, self.new_pdb, border, self.tmp_count, verbose=True, save_steps=True)
+                        self.tmp_count, ok = cmake.fill_interaction(chain, self.homo_chains, self.interactions_dict, self.chain_id_dict, self.new_pdb, border, self.tmp_count, verbose=True, save_steps=True)
                         self.master.update_proteins([(self.new_pdb, 'tmp/part%s.pdb' % self.tmp_count)])
+                        self.master.output = self.new_pdb
                     self.completed_borders += 1
                     self.interactions_checked = False
 
@@ -635,7 +639,6 @@ class PopUpLoadWindow(tk.Toplevel):
             self.destroy()
 
 
-
 class SplitPDBThread(threading.Thread):
     def __init__(self, master):
         threading.Thread.__init__(self)
@@ -685,6 +688,12 @@ class MainW(tk.Tk):
         self.console.pack(fill='both', expand=True)
 
 
+def shut_down():
+    if messagebox.askokcancel("Quit", "Do you really wish to quit?"):
+        shutil.rmtree('tmp/')
+        app.destroy()
+
+
 if __name__ == "__main__":
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
@@ -694,7 +703,9 @@ if __name__ == "__main__":
     info_console = Writer(app, "info")
     from BioMacromplex.PDB import ProteinStructure as PS  # Imported here because we have overrode the sys.stderr and stdout channel
     import BioMacromplex.PDBaligner as cmake
-    import BioMacromplex.temporal_cleaner as clean
     import BioMacromplex.PDB_split as trans
+    app.protocol("WM_DELETE_WINDOW", shut_down)
+    if not os.path.exists('tmp'):
+        os.mkdir('tmp')
     app.mainloop()
-    clean.clean_temporal()
+
