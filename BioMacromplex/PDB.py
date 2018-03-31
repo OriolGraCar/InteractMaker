@@ -88,6 +88,7 @@ class ProteinStructure(BASE):
                         ·Atom
             It inherits the attributes from BASE with some changes: its childs are a list of chain objects"""
     def __init__(self, id ,pdb_file):
+        self.hetatm_dict = None
         self.childs = self._init_chains(pdb_file)
         BASE.__init__(self, id)
         self.mw = None
@@ -97,13 +98,22 @@ class ProteinStructure(BASE):
     def _init_chains(self, pdb_file):
         """Private method to generate and return the child chain objects for initialization"""
         c = []
-        pdb = self._read_pdb(pdb_file)
+        pdb, het = self._read_pdb(pdb_file)
+        if het:
+            self.hetatm_dict = dict()
         for chain in pdb:
             c.append(Chain(chain, pdb[chain]))
+            if chain in het:
+                c[len(c)-1].hetatm = c[len(c)-1]._init_residues(het[chain])
+                self.hetatm_dict[chain] = c[len(c)-1].hetatm
         return c
     def _read_pdb(self, pdb_file):
         cols = list()
         pdb = dict()
+        het_pdb = dict()
+        model = False
+        model_last_res, model_last_chain = -10, None
+        model_chains = set()
         with open(pdb_file, "r") as file:
             for line in file:
                 line = line.rstrip()
@@ -116,6 +126,20 @@ class ProteinStructure(BASE):
                         cols = [line[:6].strip(), line[6:11].strip(), line[12:16].strip(), line[17:20].strip(),
                                 line[21].strip(), line[22:26].strip(), line[30:38].strip(), line[38:46].strip(),
                                 line[46:54].strip()]
+                    if model and cols[4] in model_chains:
+                        full_names = True
+                        if model_last_res > int(cols[5]):
+                            model_chains.add(model_last_chain)
+                        for new_col_name in ltr:
+                            if new_col_name not in model_chains:
+                                cols[4] = new_col_name
+                                model_last_res = int(cols[5])
+                                model_last_chain = cols[4]
+                                full_names = False
+                                break
+                        if full_names:
+                            break
+
                     if len(cols) > 10: # include Temperature Factor
                         pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
                         (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8])), float(cols[9]), float(cols[10])))
@@ -125,7 +149,31 @@ class ProteinStructure(BASE):
                     else: # standart pdb just with coordinates
                         pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
                             (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8]))))
-        return pdb
+                elif line.startswith('HETATM'):
+                    if len(line) > 64:
+                        cols = [line[:6].strip(), line[6:11].strip(), line[12:16].strip(), line[17:20].strip(),
+                                line[21].strip(), line[22:26].strip(), line[30:38].strip(), line[38:46].strip(),
+                                line[46:54].strip(), line[54:60].strip(), line[60:66].strip()]
+                    elif len(line) > 53:
+                        cols = [line[:6].strip(), line[6:11].strip(), line[12:16].strip(), line[17:20].strip(),
+                                line[21].strip(), line[22:26].strip(), line[30:38].strip(), line[38:46].strip(),
+                                line[46:54].strip()]
+                    if len(cols) > 10: # include Temperature Factor
+                        het_pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
+                        (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8])), float(cols[9]), float(cols[10])))
+                    elif len(cols) > 9: # include atom occupancy
+                        het_pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
+                            (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8])), float(cols[9])))
+                    else: # standart pdb just with coordinates
+                        het_pdb.setdefault(cols[4], dict()).setdefault((cols[5], cols[3]), list()).append(
+                            (cols[1], cols[2], (float(cols[6]), float(cols[7]), float(cols[8]))))
+                elif line.startswith('MODEL'):
+                    model = True
+                elif line.startswith('ENDMDL'):
+                    for chain_name in pdb:
+                        model_chains.add(chain_name)
+                    model = False
+        return pdb, het_pdb
     def get_mw(self):
         """Returns the molecular weight as the sum of the molecular weight of it's chains"""
         mweight = 0
@@ -185,6 +233,8 @@ class ProteinStructure(BASE):
             my_nw_chain.id = cid
             self.childs.append(my_nw_chain)
             self.child_dict = self._get_childs_dict(self.childs)
+            if my_nw_chain.hetatm:
+                self.hetatm_dict[cid] = my_nw_chain.hetatm
             self.parenting()
         if track_name:
             return cid
@@ -284,6 +334,28 @@ class ProteinStructure(BASE):
                             #out_pdb.write("{:6s}{:5s} {:^4s}{:1s}{:3s} {:1s}{:4s}{:1s}   {:8s}{:8s}{:8s}{:6s}{:6s}\n".format('ATOM', atom.num, atom.name, residue.name, chain.id, residue.num,round(atom.coords[0],3), round(atom.coords[1],3), round(atom.coords[2],3), round(atom.occupancy, 2), round(atom.temp_factor, 2)))
                         line_num +=1
                 out_pdb.write("TER\n")
+            if self.hetatm_dict:
+                for chain in self.hetatm_dict:
+                    if not chain_name is None and chain not in chain_name:
+                        continue
+                    for residue in self.hetatm_dict[chain]:
+                        for atom in residue:
+                            if atom_name is None or atom.get_name() in atom_name:
+                                if atom.occupancy is not None and atom.temp_factor is not None:
+                                    out_pdb.write(
+                                        "%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f%6.2f%6.2f           %s\n" % (
+                                        'HETATM', line_num, atom.name,
+                                        residue.name, chain[0], residue.num, round(atom.coords[0], 3),
+                                        atom.coords[1], atom.coords[2], atom.occupancy, atom.temp_factor, atom.name[0]))
+                                else:
+                                    out_pdb.write(
+                                        "%-6s%5s %4s %3s %s%4s    %8.3f%8.3f%8.3f\n" % ('HETATM', line_num, atom.name,
+                                                                                        residue.name, chain[0],
+                                                                                        residue.num,
+                                                                                        round(atom.coords[0], 3),
+                                                                                        atom.coords[1], atom.coords[2]))
+                                    # out_pdb.write("{:6s}{:5s} {:^4s}{:1s}{:3s} {:1s}{:4s}{:1s}   {:8s}{:8s}{:8s}{:6s}{:6s}\n".format('ATOM', atom.num, atom.name, residue.name, chain.id, residue.num,round(atom.coords[0],3), round(atom.coords[1],3), round(atom.coords[2],3), round(atom.occupancy, 2), round(atom.temp_factor, 2)))
+                            line_num += 1
 class Chain(BASE):
     """Chain class in the typical hierarchical structure:
                Structure
@@ -297,6 +369,7 @@ class Chain(BASE):
         BASE.__init__(self, id)
         self.sequence = self._obtain_sequenceobj(chain_dict)
         self.mw = self.sequence.get_mw()
+        self.hetatm = None
     def __str__(self):
         return self.sequence.get_sequence()
     def _init_residues(self, chain_dict):
@@ -384,6 +457,23 @@ class Chain(BASE):
                     break
         if len(interacting)>0:
             return interacting
+    def transform(self, rot = numpy.array([[1,0,0],[0,1,0],[0,0,1]]), tran = numpy.array([0,0,0])):
+        """
+        Apply rotation and translation to the atomic coordinates.
+        It goes all until Atoms and it transforms them. (this method
+        overrided in the ATOM class
+
+        @param rot: A right multiplying rotation matrix
+        @type rot: 3x3 Numeric array
+
+        @param tran: the translation vector
+        @type tran: size 3 Numeric array
+        """
+        for o in self:
+            o.transform(rot, tran)
+        if self.hetatm:
+            for hetatom in self.hetatm:
+                hetatom.transform(rot,tran)
 class Residue(BASE):
     """Residue class in the typical hierarchical structure:
                    Structure
