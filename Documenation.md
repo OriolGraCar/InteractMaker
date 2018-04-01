@@ -39,8 +39,7 @@ Another advantage of our approach is that if the user gives redundant interactio
 
 # 2. Program limitations
 
-Despite the fact that our program is very robust. (it can deal with different kinds of chains, protein symmetry and even excessive input without affecting it's performance).
-However, in some special cases the program can fail to give the correct solution or just give a partial correct one, those cases are:
+Despite the fact that our program is quite versatile(it can deal with different kinds of chains, protein symmetry and even excessive input without affecting it's performance) in some special cases the program fails to give the correct solution or gives a partial correct one, those cases are:
 
 *1. When there is more than one correct structure given the data.*
 Our program ensures to give a good looking structure given the data, because it makes sure that all the interactions are on their place, which is very useful when there is only one correct structure. However, when the interactions provided can lead to more than one correct structure our program will give only one of them. For example with the case of XXXXX, the program will give any of the two depending in the order in which the interactions pairs are provided.
