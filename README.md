@@ -136,7 +136,7 @@ This files can be obtained in different ways, we also provide inside the package
     $ ls test/proteasoma
 
 1U.pdb  2O.pdb  2S.pdb  FE.pdb  SE.pdb  UB.pdb
-``
+```
 
 This script will split the pdb in all the different interactions pairs found.
 
