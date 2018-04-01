@@ -101,12 +101,14 @@ With this the process will be finished and the macrocomplex in our specified dir
 In the test folder you can find also some other test macrocomplexes that can be used as toy models with the interactions already extracted:
 
 	- A Phosphate dehydratase (2f1d.pdb) in test/phosphate/
-	- A Nucleosoma (3kuy.pdb) in test/nucl
-	- An ATP-syntasa (5kw1.pdb) in test/ATP
-	- An Hemoglobin (1a3n.pdb) in test/hemoglobin
-	- A Mosaic Virus Capside (3j7l.pdb) in test/mosaic_virus
-	- An Aquaporin (2rc2.pdb) in test/aquaporin
-	- A RNA Polymerase I (5lmx.pdb) in test/RNA_polI
+	- A Nucleosoma (3kuy.pdb) in test/nucl/
+	- An ATP-syntasa (5kw1.pdb) in test/ATP/
+	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
+	- A Mosaic Virus Capside (3j7l.pdb) in test/mosaic_virus/
+	- An Aquaporin (2rc2.pdb) in test/aquaporin/
+	- A RNA Polymerase I (5lmx.pdb) in test/RNA_polI/
+	- A RNA exosome (2nn6.pdb) in test/RNA_exosome/
+	- A Glutamine synthetase (1fpy.pdb) in test/glutamine_synth/
 
 ## References
 
