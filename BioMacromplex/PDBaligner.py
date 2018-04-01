@@ -13,13 +13,21 @@ def find_common_atoms(chain_fix, chain_mov):
     :return: A two lists of Atom objects prepared to be superimposed.
     That means the atoms are coherent in their position with the other list.
     '''
+    #first check which kind of molecule are our chains (and if they are the same type of molecules)
+    chem_type = None
+    if chain_fix.sequence.__class__ == chain_mov.sequence.__class__:
+        if chain_fix.sequence.__class__.__name__ == 'ProteinSequence':
+            chem_type = 'P'
+        elif chain_fix.sequence.__class__.__name__ == 'DNASequence':
+            chem_type = 'D'
+        elif chain_fix.sequence.__class__.__name__ == 'RNASequence':
+            chem_type = 'R'
+
     seq_fix = chain_fix.get_sequence_str()
     seq_mov = chain_mov.get_sequence_str()
     atoms_fix = list()
     atoms_mov = list()
-    '''print('Alignment from the chain %s from the %s pdb and chain %s from %s pdb' %(
-         chain_fix.get_id(), chain_fix.parent.id,chain_mov.get_id(), chain_mov.parent.id))'''
-    alignment = align.globalxx(seq_fix, seq_mov)
+    alignment = align.globalxx(seq_fix, seq_mov) #align sequences
     count_fix = 0
     count_move = 0
     for i in range(len(alignment[0][0])):
@@ -28,12 +36,19 @@ def find_common_atoms(chain_fix, chain_mov):
         if alignment[0][1][i] == '-':
             count_move -= 1
         elif alignment[0][0][i] != '-' and alignment[0][1][i] != '-':
-            try:
-                atoms_fix.extend(chain_fix.childs[i + count_fix].backbone())
-                atoms_mov.extend(chain_mov.childs[i + count_move].backbone())
-            except:
-                atoms_fix.extend(chain_fix.childs[i + count_fix].backbone(True, 'C'))
-                atoms_mov.extend(chain_mov.childs[i + count_move].backbone(True, 'C'))
+            if chem_type == 'P':
+                try:#try get full backbone (CONCA)
+                    atoms_fix.extend(chain_fix.childs[i + count_fix].backbone())
+                    atoms_mov.extend(chain_mov.childs[i + count_move].backbone())
+                except:#Maybe an atom from the backbone is missing so we use C only
+                    atoms_fix.extend(chain_fix.childs[i + count_fix].backbone(True, 'C'))
+                    atoms_mov.extend(chain_mov.childs[i + count_move].backbone(True, 'C'))
+            elif chem_type is not None:#DNA or RNA
+                atoms_fix.extend(chain_fix.childs[i + count_fix].childs)
+                atoms_mov.extend(chain_mov.childs[i + count_move].childs)
+            else:
+                sys.stderr.write('Tried to align chains with an unknown or different chemical structure')
+                exit(1)
     #print(format_alignment(*alignment[0]))
     return atoms_fix, atoms_mov
 
@@ -178,11 +193,14 @@ def fast_is_residue_interacting(residue, distance):
                 return True
     return False
 
-def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}, verbose = False, steps = False):
+def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}, verbose = False, steps = False, max_chains = False):
     '''
     Builds a macrocomplex pdb parting from a list of the interactions from a pdb (protein structure object)
      :param PDB_list: A list of pdb (Protein Structure objects)
      :param homolog_chains_dict: Default = Empty dict. A dictionary with id transformation for homolog interactions
+     :param verbose (boolean): flag to print the important steps
+     :param save_steps (boolean): flag to save pdb each time a new chain is added
+     :param max_chains (boolean): flag to define a maximum amount of flags to the output pdb
      :return: A pdb object with all the interactions completed, a dictionary with the change of names done in the process
     '''
 
@@ -225,6 +243,9 @@ def reconstruct_macrocomplex(PDB_list, homolog_chains_dict = {}, verbose = False
                     completed_borders += 1
             if completed_borders == len(interactions_dict[chain_id_dict[chain.get_id()]]):#if we filled all necesary borders
                 completed_chain += 1
+            if max_chains and len(new_pdb) >= max_chains:
+                runing = False
+                break
         if completed_chain == len(new_pdb):#if all chains have all interactions filled.
             runing = False
     return new_pdb, chain_id_dict
@@ -256,14 +277,16 @@ def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dic
     :param new_pdb: ProteinStructure object
     :param border: Tupple of residue numbers that need to be interacting with another residues but they arent
     :param tmp_count: a count for the temporal pdb names that track the process everytime a new chain is added
+    :param verbose (boolean): flag to print the important steps
+    :param save_steps (boolean): flag to save pdb each time a new chain is added
     :return: tmp_count, boolean ( if the interaction has correctly been filled)
     '''
     if chain_id_dict[chain.get_id()] in homolog_chains_dict: #Use chains that are involved in homointeractions as the original
-        for i in range(20):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+        for i in range(10):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 homolog_chains_dict[chain_id_dict[chain.get_id()]]])
     else:
-        for i in range(20):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
+        for i in range(10):  # Fitting 100 times (too much? it's too quick and we don't want deviations to accumulate)
             superimpose_pdb_by_chain(chain, interactions_dict[chain_id_dict[chain.get_id()]][border].parent[
                 chain_id_dict[chain.get_id()]])
 
@@ -296,7 +319,7 @@ def fill_interaction(chain, homolog_chains_dict, interactions_dict, chain_id_dic
     elif new_name == 'NADA':#none of the possible chains to add were good (they had clashes)
         tmp_count, False
     else:#everything is fine
-        if save_steps:
+        if save_steps:#Save step by step / should i give it another name?
             new_pdb.save_to_file('tmp/part%s.pdb' % tmp_count)
             tmp_count += 1
         chain_id_dict[new_name] = interactions_dict[chain_id_dict[chain.get_id()]][border].get_id()
@@ -313,7 +336,7 @@ def is_chain_clashing(chain_name, pdb):
         other_chain = pdb.childs[chain_position]
         if other_chain.get_id() == chain_name:
             continue
-        contador, n_of_atoms = 0, 0
+        contador, n_of_atoms = 0,0
         ns = NeighborSearch(other_chain.get_atoms_list())
         for atom in pdb[chain_name].iter_atoms():
             clash = ns.search(atom.get_coord(), radius=1.5)
