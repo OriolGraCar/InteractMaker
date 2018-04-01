@@ -105,6 +105,7 @@ In the test folder you can find also some other test macrocomplexes that can be 
 	- An ATP-syntasa (5kw1.pdb) in test/ATP
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin
 	- A Mosaic Virus Capside (3j7l.pdb) in test/mosaic_virus
+	- An Aquaporin (2rc2.pdb) in test/aquaporin
 
 ## References
 
