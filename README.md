@@ -101,6 +101,7 @@ All the examples have particularities that makes them different, this is so beca
 The examples provided are:
 
 	- A Phosphate dehydratase (2f1d.pdb) in test/phosphate/
+	- A Proteasome (1pma.pdb) in test/protasoma/
 	- A Nucleosoma (3kuy.pdb) in test/nucl/
 	- An ATP-syntasa (5kw1.pdb) in test/ATP/
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
