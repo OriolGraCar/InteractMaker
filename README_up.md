@@ -111,11 +111,11 @@ The examples provided are:
 Particular characteritics of some of those examples:
 
 - Hemoglobin: This one is a simple example of an small symetric protein but with the particulary of having hetatoms (not convencional atoms) in this case the iron ion.
-- Proteosome: Example of a huge and higly symetric proteic macro-complex
+- Proteosome: Example of a big and higly symetric proteic macro-complex
 - Nucleosome : Example of a protein - DNA macro-complex
 - ATP-syntasa : Example of a big proteic complex with both symmetric and asymmetric parts.
 - Phosphate dehydratase: Example of a big symetric macro-complex with lots of hetatoms.
-- Virus capside 1: This is a enormous proteic macrocomplex made of multiple chains, that XXXXXX. Warning running this example may take a while do to its complexity.
+- Virus capsides : This are enormous proteic macrocomplex made of multiple chains, that XXXXXX. Warning running this example may take a while do to its complexity.
 
 
 # Command line example (Tutorial)
