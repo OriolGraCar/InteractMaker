@@ -99,10 +99,12 @@ With this the process will be finished and the macrocomplex in our specified dir
 #### Other examples in test/
 
 In the test folder you can find also some other test macrocomplexes that can be used as toy models with the interactions already extracted:
+
 	- A Phosphate dehydratase (2f1d.pdb) in test/phosphate/
 	- A Nucleosoma (3kuy.pdb) in test/nucl
 	- An ATP-syntasa (5kw1.pdb) in test/ATP
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin
+	- A Mosaic Virus Capside (3j7l.pdb) in test/mosaic_virus
 
 ## References
 
