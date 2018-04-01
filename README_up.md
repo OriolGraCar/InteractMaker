@@ -46,11 +46,13 @@ You just need to install it trough the following repository:
    $ conda install -c samoturk pymol
 ```
 
-Despite that this installation is enough to run our program is not yet completed since it lacks the pmw package. to install it trough conda, use:
+Despite that this installation is enough to run our program is not yet completed since it lacks the pmw package, necesary to run pymol comand window. to install it trough conda, use:
 
 ```bash
 $ conda install -c fable pmw
 ```
+The pmw package is also avaliable in pip
+
 
 ## Usage
 
@@ -96,13 +98,17 @@ All the examples have particularities that makes them different, this is so beca
 
 The examples provided are:
 
-	- An Hemoglobin (1a3n.pdb) in test/hemoglobin. 
-	- A proteosome (1pma.pdb) in test/proteasoma. 
-	- A Nucleosoma (3kuy.pdb) in test/nucl. 
-	- An ATP-syntasa (5kw1.pdb) in test/ATP. 
-	- A Phosphate dehydratase (2f1d.pdb) in test/phosphate.
+	- A Phosphate dehydratase (2f1d.pdb) in test/phosphate/
+	- A Nucleosoma (3kuy.pdb) in test/nucl/
+	- An ATP-syntasa (5kw1.pdb) in test/ATP/
+	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
+	- A Mosaic Virus Capside (3j7l.pdb) in test/mosaic_virus/
+	- An Aquaporin (2rc2.pdb) in test/aquaporin/
+	- A RNA Polymerase I (5lmx.pdb) in test/RNA_polI/
+	- A RNA exosome (2nn6.pdb) in test/RNA_exosome/
+	- A Glutamine synthetase (1fpy.pdb) in test/glutamine_synth/
 
-Particular characteritics of those examples:
+Particular characteritics of some of those examples:
 
 - Hemoglobin: This one is a simple example of an small symetric protein but with the particulary of having hetatoms (not convencional atoms) in this case the iron ion.
 - Proteosome: Example of a huge and higly symetric proteic macro-complex
@@ -217,6 +223,8 @@ Hidrogen bond distance taken as 3.5A so it will be the distance managed by the s
 
 Martz, Eric; Help, Index & Glossary for Protein Explorer, http://www.umass.edu/microbio/chime/pe_beta/pe/protexpl/igloss.htm
 Jeffrey, George A.; An introduction to hydrogen bonding, Oxford University Press, 1997.
+
+For more detailed information consult the Documentation.
 
 
 
