@@ -1,6 +1,6 @@
 # Interactmaker
 
-InteractMaker is a python3 program developed by Oriol Gracia Carmona and Alvaro Serrano Moras for the subject structural bioinformatics (SBI) of the Msc Bioinformatics for health sciences at the UPF.
+InteractMaker is a python3 program developed by Oriol Gracia Carmona and Alvaro Serrano Moras for the course structural bioinformatics (SBI) of the Msc Bioinformatics for health sciences at the UPF.
 This program is able to build different kinds of Macrocomplexes,(protein, DNA and RNA macrocomplexes) using its interactions pairs. 
 It comes with a stand-alone command line script *Reconstruct_macrocomplex.py*, a Graphical User Interface (GUI) *InteractMakerGui.py* and a package called BioMacromplex, that contains all the functions and objects required to manipulate, load and build a pdb.
 
@@ -60,22 +60,24 @@ The pmw package is also avaliable in pip
 
 ```bash
     $ ./Reconstruct_macrocomplex.py -h
+    
+usage: Reconstruct_macrocomplex.py [-h] -i FOLDER [-o OUTPUT_PDB]
+                                   [-m MAX_CHAINS] [-s] [-v | -q]
 
-usage: Reconstruct_macrocomplex.py [-h] -i FOLDER [-o OUTPUT_PDB] [-v] [-s]
-                                   [-q]
-
-Reconstruct_macrocomplex.py is a script that uses the BioMacromplex module to
-reconstruct Protein, DNA or RNA complexes through a set of interactions in pdb
-format.
+./Reconstruct_macrocomplex.py is a script that uses the BioMacromplex module
+to reconstruct Protein, DNA or RNA complexes through a set of interactions in
+pdb format.
 
 optional arguments:
   -h, --help     show this help message and exit
   -i FOLDER      Path to a folder where pdb are stored
   -o OUTPUT_PDB  Output file where the macrocomplex pdb will be stored
-  -v, --verbose  Print the progress of the program and the log
+  -m MAX_CHAINS  Defines a maximum amount of chains in the output pdb
   -s, --steps    Save a temporary pdb in tmp/ each time a chain is added to
                  track the process
+  -v, --verbose  Print the progress of the program and the log
   -q, --quiet    Stores standard output and error in /dev/null/
+
 
 ```
 ### GUI
@@ -102,7 +104,8 @@ The examples provided are:
 	- A Nucleosoma (3kuy.pdb) in test/nucl/
 	- An ATP-syntasa (5kw1.pdb) in test/ATP/
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
-	- A Mosaic Virus Capside (3j7l.pdb) in test/mosaic_virus/
+	- A Mosaic Virus capside (3j7l.pdb) in test/mosaic_virus/
+	- A Penicillium chrysogenum Virus capside (3j3i.pdb) test/Pc_capsid/
 	- An Aquaporin (2rc2.pdb) in test/aquaporin/
 	- A RNA Polymerase I (5lmx.pdb) in test/RNA_polI/
 	- A RNA exosome (2nn6.pdb) in test/RNA_exosome/
