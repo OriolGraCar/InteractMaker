@@ -29,8 +29,9 @@ parser = ArgumentParser(description='%s is a script that uses the BioMacromplex 
 talk = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", dest= "folder", action = "store", type = str, help = "Path to a folder where pdb are stored", required = True)
 parser.add_argument("-o", dest="output_pdb", action = "store", type = str, default='macrocomplex.pdb', help = "Output file where the macrocomplex pdb will be stored")
-talk.add_argument('-v', '--verbose', dest = 'verbose', action = "store_true", default = False, help = "Print the progress of the program and the log")
+parser.add_argument('-m', dest = 'max_chains', action = "store", type = int, default = False, help = "Defines a maximum amount of chains in the output pdb")
 parser.add_argument('-s', '--steps', dest = 'tmp_steps', action = "store_true", default= False, help = "Save a temporary pdb in tmp/ each time a chain is added to track the process")
+talk.add_argument('-v', '--verbose', dest = 'verbose', action = "store_true", default = False, help = "Print the progress of the program and the log")
 talk.add_argument('-q', '--quiet', dest = 'quiet', action = "store_true", default= False, help = "Stores standard output and error in /dev/null/")
 opt = parser.parse_args()
 
@@ -87,7 +88,7 @@ if opt.tmp_steps:
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
 homo_chains = good_chain_names(pdb_list)
-new_pdb, chain_id_dict = reconstruct_macrocomplex(pdb_list, homo_chains, verbose = opt.verbose, steps = opt.tmp_steps)
+new_pdb, chain_id_dict = reconstruct_macrocomplex(pdb_list, homo_chains, verbose = opt.verbose, steps = opt.tmp_steps, max_chains = opt.max_chains)
 delete_overlapping_chains(new_pdb, verbose = opt.verbose)
 if opt.verbose:
     print('\n\nThe Macrocomplex is saved in %s and has the following characteristics: ' %opt.output_pdb)
