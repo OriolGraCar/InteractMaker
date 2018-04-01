@@ -105,7 +105,8 @@ The examples provided are:
 	- An ATP-syntasa (5kw1.pdb) in test/ATP/
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
 	- A Mosaic Virus capside (3j7l.pdb) in test/mosaic_virus/
-	- A Penicillium chrysogenum Virus capside (3j3i.pdb) test/Pc_capsid/
+	- A Penicillium chrysogenum Virus capside (3j3i.pdb) in test/Pc_capsid/
+	- An Enterovirus capside (3j23.pdb) in test/enterovirus/
 	- An Aquaporin (2rc2.pdb) in test/aquaporin/
 	- A RNA Polymerase I (5lmx.pdb) in test/RNA_polI/
 	- A RNA exosome (2nn6.pdb) in test/RNA_exosome/
