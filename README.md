@@ -111,6 +111,7 @@ The examples provided are:
 	- A RNA Polymerase I (5lmx.pdb) in test/RNA_polI/
 	- A RNA exosome (2nn6.pdb) in test/RNA_exosome/
 	- A Glutamine synthetase (1fpy.pdb) in test/glutamine_synth/
+	- A Microtubule (5syg.pdb) in test/microtubul/
 
 Particular characteritics of some of those examples:
 
@@ -120,7 +121,7 @@ Particular characteritics of some of those examples:
 - ATP-syntasa : Example of a big proteic complex with both symmetric and asymmetric parts.
 - Phosphate dehydratase: Example of a big symetric macro-complex with lots of hetatoms.
 - Virus capsides : This are enormous proteic macrocomplex made of multiple chains, that XXXXXX. Warning running this example may take a while do to its complexity.
-
+- Microtubule : As the microtubul is an open macro-complex the program would not be able to finish it so in this casv we need to specify the maximum amount of chains we want in the output with the option -m (e.g. -m 100).
 
 # Command line example (Tutorial)
 
@@ -130,30 +131,17 @@ However, it may still work with fewer interactions pairs as long as they are eno
 This files can be obtained in different ways, we also provide inside the package an script to split the pdbs called *pdb_split.py*
 
 ```bash
-    $ python3 BioMacromplex/PDB_split.py path_of_the_input_file path_of_the_output_folder
- ```
-
-This script will split the pdb in all the different interactions pairs found.
-
-*Step 2:*
-Once you have all the pairs of interactions just launch the Reconstruct_macrocomplex.py.
-
- ```bash
-    $ python3 Reconstruct_macrocomplex.py -i path_of_the_folder_with_the_interactions_files -o outputfile_path
-
- ```
- You can add aditional arguments such as -v to have the vebrose or -s to have a pdb file of each one of the steps.
- Warning, if the pdb that is being constructed as more chains than possible letters, some chains will have the same name despite beign different chains. This happens for example when bulding a virus capside.
-
-# Particular Example (*the proteosome*)
-
-```bash
     $ python3 BioMacromplex/PDB_split.py test/1pma.pdb test/proteasoma
     
     $ ls test/proteasoma
 
 1U.pdb  2O.pdb  2S.pdb  FE.pdb  SE.pdb  UB.pdb
-```
+``
+
+This script will split the pdb in all the different interactions pairs found.
+
+*Step 2:*
+Once you have all the pairs of interactions just launch the Reconstruct_macrocomplex.py.
 
 ```bash
     $ python3 Reconstruct_macrocomplex.py -i test/proteasoma -o test/reconstructed_proteasoma.pdb
@@ -163,8 +151,9 @@ WARNING!: Chain E in pdb SE doesn't start in residue 1
 WARNING!: Chain E in pdb FE doesn't start in residue 1
 WARNING!: Chain F in pdb FE doesn't start in residue 1
 The END
-
 ```
+ You can add aditional arguments such as -v to have the vebrose or -s to have a pdb file of each one of the steps.
+ Warning, if the pdb that is being constructed as more chains than possible letters, some chains will have the same name despite beign different chains. This happens for example when bulding a virus capside.
 
 # GUI example
 
