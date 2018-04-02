@@ -1,6 +1,6 @@
 # Interactmaker
 
-InteractMaker is a python3 program developed by Oriol Gracia Carmona and Alvaro Serrano Moras for the course structural bioinformatics (SBI) of the Msc Bioinformatics for health sciences at the UPF.
+InteractMaker is a python3 program developed by Oriol Gracia Carmona and Álvaro Serrano Morrás for the course structural bioinformatics (SBI) of the Msc Bioinformatics for health sciences at the UPF.
 This program is able to build different kinds of Macrocomplexes,(protein, DNA and RNA macrocomplexes) using its interactions pairs. 
 It comes with a stand-alone command line script *Reconstruct_macrocomplex.py*, a Graphical User Interface (GUI) *InteractMakerGui.py* and a package called BioMacromplex, that contains all the functions and objects required to manipulate, load and build a pdb.
 
