@@ -104,6 +104,7 @@ The examples provided are:
 	- A Proteasome (1pma.pdb) in test/protasoma/
 	- A Nucleosoma (3kuy.pdb) in test/nucl/
 	- An ATP-syntasa (5arh.pdb) in test/ATP/
+	- a Ribosome (PNASA6.pdb) in test/ribosoma/
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
 	- A Mosaic Virus capside (3j7l.pdb) in test/mosaic_virus/
 	- A Penicillium chrysogenum Virus capside (3j3i.pdb) in test/PcV_capsid/
@@ -116,20 +117,26 @@ The examples provided are:
 
 Particular characteritics of some of those examples:
 
+- Glutamine synthetase, RNA PolI and RNA exosome are various
 - Hemoglobin: This one is a simple example of an small symetric protein but with the particulary of having hetatoms (not convencional atoms) in this case the iron ion.
 - Proteosome: Example of a big and higly symetric proteic macro-complex
 - Nucleosome : Example of a protein - DNA macro-complex
+- Ribosome : Example of a protein - RNA macro-complex
 - ATP-syntasa : Example of a big proteic complex with both symmetric and asymmetric parts.
 - Phosphate dehydratase: Example of a big symetric macro-complex with lots of hetatoms.
-- Virus capsides : This are enormous proteic macrocomplex made of multiple chains, that XXXXXX. Warning running this example may take a while do to its complexity.
-- Microtubule : As the microtubul is an open macro-complex the program would not be able to finish it so in this casv we need to specify the maximum amount of chains we want in the output with the option -m (e.g. -m 100).
+- Virus capsides: This are enormous proteic macrocomplex made of multiple chains. Warning running this example may take a while do to its complexity.
+	· The Mosaic Virus and Enterovirus capsides are formed by pieces of diferent chains.
+	· The PcV capside is formed by the same chain multiple times.
+
+- Microtubule : As the microtubul is an open macro-complex the program would not be able to finish it so in this casv we need to specify the maximum amount of chains we want in the output with the option -m (e.g. -m 100). It may also take long depending on how many chains you want.
 
 # Command line example (Tutorial)
 
 *Step 1:*
+
 First we need the pdb files with the interactions. The program needs enough interactions to know how to place everything, for all the cases, the correct amount is all the different interactions found in the macro-complex.
 However, it may still work with fewer interactions pairs as long as they are enough to know how the different proteins are placed together. If more interactions than the strictively necessary are provided the program will still work properly.
-This files can be obtained in different ways, we also provide inside the package an script to split the pdbs called *pdb_split.py*
+This files can be obtained in different ways, but a module of the package we provide (*PDB_split.py*) can be used as a script to obtain a the set of unique interactions.
 
 ```bash
     $ python3 BioMacromplex/PDB_split.py test/1pma.pdb test/proteasoma
@@ -142,6 +149,7 @@ This files can be obtained in different ways, we also provide inside the package
 This script will split the pdb in all the different interactions pairs found.
 
 *Step 2:*
+
 Once you have all the pairs of interactions just launch the Reconstruct_macrocomplex.py.
 
 ```bash
@@ -153,12 +161,14 @@ WARNING!: Chain E in pdb FE doesn't start in residue 1
 WARNING!: Chain F in pdb FE doesn't start in residue 1
 The END
 ```
- You can add aditional arguments such as -v to have the vebrose or -s to have a pdb file of each one of the steps.
- Warning, if the pdb that is being constructed as more chains than possible letters, some chains will have the same name despite beign different chains. This happens for example when bulding a virus capside.
+ You can add aditional arguments such as -v to have the vebrose, -s to have a pdb file of each one of the steps or -m to set a maximum number of chains in the output.
+ 
+Warning, if the pdb that is being constructed as more chains than possible letters, some chains will have the same name despite beign different chains. This happens for example when bulding a virus capside.
 
 # GUI example
 
 *Step 1:*
+
 To use the GUI first launch the InteractMakerGui.py.
 Then a pop-up window will be opened.
 
@@ -177,6 +187,7 @@ Once you have saved or/and send the output to the PDB reconstruct you will have 
 To do so go to: menu bar > modules > PDB reconstruct
 
  *Step 2:*
+ 
 if you have send the interactions in the previous step you will se that all the interactions are now loaded, if not go to:
 menu bar > File > Open Folder and select the folder in which the interactions are saved. 
 
