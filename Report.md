@@ -24,7 +24,9 @@ The objective of the software provided is to reconstruct pdb's from interactions
 
 The aim of this project is to build a protein Macro-complex using as input the pair of interactions that happen in the inner core of the protein. These Macro-complexes can also contain DNA, RNA or other compounds such as ions and small organic molecules.
 
-The idea behind is the following: if we choose one interaction pair as the starting template, we can then place the rest of the chains by superposition. Due to the fact that, in a macro-complex, at least another interaction pair has the same chain, then we can align those chains and after that, move the different chain responsible of the interaction to the template that we are building, check image 1. Just like a puzzle, if we keep aligning the similar proteins and moving the chains from the interaction to the template we can eventually obtain the correct macro-complex.
+The idea behind is the following: if we choose one interaction pair as the starting template, we can then place the rest of the chains by superposition. Due to the fact that, in a macro-complex, at least another interaction pair has the same chain, then we can align those chains and after that, move the different chain responsible of the interaction to the template that we are building (Image 1 & 2). Just like a puzzle, if we keep aligning the similar proteins and moving the chains from the interaction to the template we can eventually obtain the correct macro-complex.
+
+![Image 1](antes.png)
 
 To obtain the correct structure using this approach we need to know which proteins have to be aligned and in which order, to avoid making unnecessary clashes by adding more than one time the same chain, and also know when to stop adding chains to that protein because it already has all its interactions.
 
