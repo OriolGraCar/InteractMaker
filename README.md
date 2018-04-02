@@ -117,12 +117,13 @@ The examples provided are:
 
 Particular characteritics of some of those examples:
 
-- Glutamine synthetase, RNA PolI and RNA exosome are various
-- Hemoglobin: This one is a simple example of an small symetric protein but with the particulary of having hetatoms (not convencional atoms) in this case the iron ion.
-- Proteosome: Example of a big and higly symetric proteic macro-complex
-- Nucleosome : Example of a protein - DNA macro-complex
-- Ribosome : Example of a protein - RNA macro-complex
+- Aquaporin: a simple example of a symmetric complex of 4 identical chains.
+- Hemoglobin: This one is a simple example of an small symmetric protein but with the particulary of having hetatoms (not convencional atoms) in this case the iron ion.
+- Proteosome and Glutamine synthetase : Examples of big and higly symetric proteic macro-complex.
+- Nucleosome : Example of a protein - DNA macro-complex.
+- Ribosome : Example of a protein - RNA macro-complex.
 - ATP-syntasa : Example of a big proteic complex with both symmetric and asymmetric parts.
+- RNA PolI and RNA exosome are various examples of asymmetric protein macro-complexes.
 - Phosphate dehydratase: Example of a big symetric macro-complex with lots of hetatoms.
 - Virus capsides: This are enormous proteic macrocomplex made of multiple chains. Warning running this example may take a while do to its complexity.
 	· The Mosaic Virus and Enterovirus capsides are formed by pieces of diferent chains.
