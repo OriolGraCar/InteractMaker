@@ -89,9 +89,9 @@ To use the GUI just launch the script.
 $ ./InteractMakerGui.py
 
 ```
-For a detailed explanation of how to use the GUI check the *Documentation.md*
+For a detailed explanation of how to use the GUI check the *Report.pdf*
 
-The program always returns one single structure that is the one most likely to be correct given the input data. A more detailed of the reason behing can be foun also in the *Documentation.md*
+The program always returns one single structure that is the one most likely to be correct given the input data. A more detailed of the reason behing can be foun also in the *Report.pdf*
 
 ## Examples
 
@@ -205,7 +205,7 @@ Answer: Sadly this happens because the pymol cmd is trash, and the python that s
 
 Question: How does the program knows how the pdb should be build?
 
-Answer: Check the Documentation.md to have a detailed explanation of the approach used.
+Answer: Check the Report.pdf to have a detailed explanation of the approach used.
 
 Question: What will happen if I give incorrect interactions?
 
