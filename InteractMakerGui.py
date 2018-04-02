@@ -44,7 +44,8 @@ class MenuBar(tk.Menu):
             # Options for Modulemenu
             self.modulemenu.add_command(label="Interact Maker", command=lambda x="Interact Maker": self.change_module(x))
             self.modulemenu.add_command(label="PDB splitter", command=lambda x="PDB splitter": self.change_module(x))
-            self.modulemenu.add_command(label="PDB validator", command=lambda x="PDB validator": self.change_module(x))
+            #To implement in the future
+            #self.modulemenu.add_command(label="PDB validator", command=lambda x="PDB validator": self.change_module(x))
             # Display
             self.add_cascade(label="File", menu=self.filemenu)
             self.add_cascade(label="Modules", menu=self.modulemenu)
@@ -436,7 +437,7 @@ class PymolImageThread(threading.Thread):
         going to the next line.
         """
         if self.is_image:
-            result = subprocess.run(["python",BioMacromplex.module_path+"/pymolmanager.py", "%s" % self.pdb])
+            result = subprocess.run(["python", BioMacromplex.module_path+"/pymolmanager.py", "%s" % self.pdb])
         else:
             try:
                 result = subprocess.run(["pymol", "%s" % self.pdb])
@@ -647,7 +648,7 @@ class SplitPDBThread(threading.Thread):
 
     def run(self):
         pdb_list = trans.deconstruct_macrocomplex_by_interactions(self.master.protein_path, "tmp/")
-        self.master.protein_list = [(x, "tmp/%s" % x.get_id()) for x in pdb_list]
+        self.master.protein_list = [(x, "tmp/%s.pdb" % x.get_id()) for x in pdb_list]
         for protein in pdb_list:
             self.master.splited_pdb_list.insert(tk.END, protein.get_id())
         self.master.log_label['text'] = "Job Finished"
