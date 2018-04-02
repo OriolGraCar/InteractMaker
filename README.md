@@ -221,8 +221,7 @@ Answer: Yes, the pdb loader that we have developed is able to recognise hetatoms
 
 For any other question contact with us:
 
-alvaro.serrano.morras@gmail.com
-oriol.gracar@gmail.com
+alvaro.serrano.morras@gmail.com  &  oriol.gracar@gmail.com
 
 ## References:
 
