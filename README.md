@@ -103,7 +103,7 @@ The examples provided are:
 	- A Phosphate dehydratase (2f1d.pdb) in test/phosphate/
 	- A Proteasome (1pma.pdb) in test/protasoma/
 	- A Nucleosoma (3kuy.pdb) in test/nucl/
-	- An ATP-syntasa (5arh.pdb) in test/ATP/
+	- An ATP-synthase (5arh.pdb) in test/ATP/
 	- a Ribosome (PNASA6.pdb) in test/ribosoma/
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
 	- A Mosaic Virus capsid (3j7l.pdb) in test/mosaic_virus/
@@ -122,7 +122,7 @@ Particular characteritics of some of those examples:
 * Proteosome and Glutamine synthetase : Examples of big and higly symetric proteic macro-complex.
 * Nucleosome : Example of a protein - DNA macro-complex.
 * Ribosome : Example of a protein - RNA macro-complex.
-* ATP-syntasa : Example of a big proteic complex with both symmetric and asymmetric parts.
+* ATP-synthase : Example of a big proteic complex with both symmetric and asymmetric parts.
 * RNA PolI and RNA exosome are various examples of asymmetric protein macro-complexes.
 * Phosphate dehydratase: Example of a big symetric macro-complex with lots of hetatoms.
 * Virus capsid: This are enormous proteic macrocomplex made of multiple chains. Warning running this example may take a while do to its complexity.
