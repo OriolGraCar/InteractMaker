@@ -106,9 +106,9 @@ The examples provided are:
 	- An ATP-syntasa (5arh.pdb) in test/ATP/
 	- a Ribosome (PNASA6.pdb) in test/ribosoma/
 	- An Hemoglobin (1a3n.pdb) in test/hemoglobin/
-	- A Mosaic Virus capside (3j7l.pdb) in test/mosaic_virus/
-	- A Penicillium chrysogenum Virus capside (3j3i.pdb) in test/PcV_capsid/
-	- An Enterovirus capside (3j23.pdb) in test/enterovirus/
+	- A Mosaic Virus capsid (3j7l.pdb) in test/mosaic_virus/
+	- A Penicillium chrysogenum Virus capsid (3j3i.pdb) in test/PcV_capsid/
+	- An Enterovirus capsid (3j23.pdb) in test/enterovirus/
 	- An Aquaporin (2rc2.pdb) in test/aquaporin/
 	- A RNA Polymerase I (5lmx.pdb) in test/RNA_polI/
 	- A RNA exosome (2nn6.pdb) in test/RNA_exosome/
@@ -125,9 +125,9 @@ Particular characteritics of some of those examples:
 * ATP-syntasa : Example of a big proteic complex with both symmetric and asymmetric parts.
 * RNA PolI and RNA exosome are various examples of asymmetric protein macro-complexes.
 * Phosphate dehydratase: Example of a big symetric macro-complex with lots of hetatoms.
-* Virus capsides: This are enormous proteic macrocomplex made of multiple chains. Warning running this example may take a while do to its complexity.
-	* The Mosaic Virus and Enterovirus capsides are formed by pieces of diferent chains.
-	* The PcV capside is formed by the same chain multiple times.
+* Virus capsid: This are enormous proteic macrocomplex made of multiple chains. Warning running this example may take a while do to its complexity.
+	* The Mosaic Virus and Enterovirus capsid are formed by pieces of diferent chains.
+	* The PcV capsid is formed by the same chain multiple times.
 
 * Microtubule : As the microtubul is an open macro-complex the program would not be able to finish it so in this casv we need to specify the maximum amount of chains we want in the output with the option -m (e.g. -m 100). It may also take long depending on how many chains you want.
 
@@ -164,7 +164,7 @@ The END
 ```
  You can add aditional arguments such as -v to have the vebrose, -s to have a pdb file of each one of the steps or -m to set a maximum number of chains in the output.
  
-Warning, if the pdb that is being constructed as more chains than possible letters, some chains will have the same name despite beign different chains. This happens for example when bulding a virus capside.
+Warning, if the pdb that is being constructed as more chains than possible letters, some chains will have the same name despite beign different chains. This happens for example when bulding a virus capsid.
 
 # GUI example
 
