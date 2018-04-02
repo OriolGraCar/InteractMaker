@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module PDBaligner</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>PDBaligner</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/seorito/PycharmProjects/SBI/BioMacromplex/PDBaligner.py">/home/seorito/PycharmProjects/SBI/BioMacromplex/PDBaligner.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;-*-&nbsp;coding:&nbsp;utf-8&nbsp;-*-</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="copy.html">copy</a><br>
+</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-all_interactions"><strong>all_interactions</strong></a>(pdb_list, homolog_chains_dict={})</dt><dd><tt>A&nbsp;function&nbsp;that&nbsp;returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;the&nbsp;interactions&nbsp;of&nbsp;each&nbsp;chain&nbsp;with&nbsp;the&nbsp;others&nbsp;from&nbsp;the&nbsp;pdbs&nbsp;in&nbsp;the&nbsp;pdb_list<br>
+:param&nbsp;pdb_list:&nbsp;A&nbsp;list&nbsp;of&nbsp;pdbs&nbsp;(Protein&nbsp;Structure&nbsp;objects)<br>
+:param&nbsp;homolog_chains_dict:&nbsp;Default&nbsp;=&nbsp;Empty&nbsp;dictionary.&nbsp;A&nbsp;dictionary&nbsp;with&nbsp;id&nbsp;transformation&nbsp;for&nbsp;homolog&nbsp;chains&nbsp;interacting<br>
+:return:&nbsp;A&nbsp;dictionary&nbsp;with&nbsp;the&nbsp;chain_id&nbsp;as&nbsp;keys,&nbsp;each&nbsp;of&nbsp;those&nbsp;is&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;tupples&nbsp;of<br>
+interacting&nbsp;residues&nbsp;as&nbsp;key&nbsp;and&nbsp;a&nbsp;pointer&nbsp;to&nbsp;the&nbsp;chain&nbsp;responsible&nbsp;for&nbsp;the&nbsp;interactions&nbsp;as&nbsp;value.</tt></dd></dl>
+ <dl><dt><a name="-check_interactions"><strong>check_interactions</strong></a>(chain, border)</dt><dd><tt>Look&nbsp;if&nbsp;the&nbsp;@chain&nbsp;has&nbsp;all&nbsp;the&nbsp;aminoacids&nbsp;in&nbsp;@border&nbsp;interacting&nbsp;with&nbsp;another&nbsp;chain<br>
+:param&nbsp;chain:&nbsp;a&nbsp;Chain&nbsp;instance&nbsp;inside&nbsp;a&nbsp;ProteinStructure<br>
+:param&nbsp;border:&nbsp;a&nbsp;tupple&nbsp;of&nbsp;aminoacid&nbsp;numbers&nbsp;(we'll&nbsp;use&nbsp;it&nbsp;as&nbsp;an&nbsp;identificator)<br>
+:return:confirmed_residues:&nbsp;number&nbsp;of&nbsp;@chain&nbsp;residues&nbsp;are&nbsp;interacting&nbsp;correctly,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lax_residue:&nbsp;number&nbsp;of&nbsp;@chain&nbsp;residues&nbsp;are&nbsp;interacting&nbsp;but&nbsp;too&nbsp;far&nbsp;than&nbsp;they&nbsp;should&nbsp;to&nbsp;(bad&nbsp;superimpossing?)</tt></dd></dl>
+ <dl><dt><a name="-delete_nonsymetryc_interactions_from_dict"><strong>delete_nonsymetryc_interactions_from_dict</strong></a>(interactions_dict, homo_chains)</dt><dd><tt>If&nbsp;there&nbsp;are&nbsp;homolog&nbsp;chains,&nbsp;it&nbsp;removes&nbsp;the&nbsp;pointer&nbsp;to&nbsp;one&nbsp;self&nbsp;of&nbsp;the&nbsp;homolog&nbsp;chains.&nbsp;Used&nbsp;mainly&nbsp;to&nbsp;prevent<br>
+homologs&nbsp;having&nbsp;to&nbsp;fulfill&nbsp;both&nbsp;non-symmetrical&nbsp;interactions&nbsp;in&nbsp;the&nbsp;same&nbsp;pdb.<br>
+&nbsp;<br>
+:param&nbsp;interactions_dict:&nbsp;A&nbsp;dictionary&nbsp;with&nbsp;the&nbsp;chain_id&nbsp;as&nbsp;keys,&nbsp;each&nbsp;of&nbsp;those&nbsp;is&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;tupples&nbsp;of<br>
+interacting&nbsp;residues&nbsp;as&nbsp;key&nbsp;and&nbsp;a&nbsp;pointer&nbsp;to&nbsp;the&nbsp;chain&nbsp;responsible&nbsp;for&nbsp;the&nbsp;interactions&nbsp;as&nbsp;value.<br>
+:param&nbsp;homolog_chains:&nbsp;&nbsp;A&nbsp;dictionary&nbsp;with&nbsp;id&nbsp;transformation&nbsp;for&nbsp;homolog&nbsp;chains&nbsp;interacting</tt></dd></dl>
+ <dl><dt><a name="-delete_overlapping_chains"><strong>delete_overlapping_chains</strong></a>(pdb, verbose=False)</dt><dd><tt>Looks&nbsp;for&nbsp;clashes&nbsp;between&nbsp;chains&nbsp;and&nbsp;if&nbsp;the&nbsp;clash&nbsp;is&nbsp;big&nbsp;it&nbsp;deletes&nbsp;the&nbsp;latest&nbsp;chain&nbsp;added&nbsp;to&nbsp;the&nbsp;pdb<br>
+:param&nbsp;pdb:&nbsp;A&nbsp;Protein&nbsp;Structure&nbsp;object</tt></dd></dl>
+ <dl><dt><a name="-fast_is_residue_interacting"><strong>fast_is_residue_interacting</strong></a>(residue, distance)</dt><dd><tt>Checks&nbsp;if&nbsp;the&nbsp;residue&nbsp;given&nbsp;is&nbsp;interacting&nbsp;with&nbsp;another&nbsp;residue&nbsp;from&nbsp;a&nbsp;diferent&nbsp;chain&nbsp;of&nbsp;the&nbsp;same&nbsp;ProteinStructure&nbsp;object<br>
+:param&nbsp;residue:&nbsp;a&nbsp;residue&nbsp;object<br>
+:param&nbsp;distance&nbsp;(int):&nbsp;the&nbsp;max&nbsp;distance&nbsp;you&nbsp;allow&nbsp;to&nbsp;consider&nbsp;an&nbsp;interaction<br>
+:return:&nbsp;boolean</tt></dd></dl>
+ <dl><dt><a name="-fill_interaction"><strong>fill_interaction</strong></a>(chain, homolog_chains_dict, interactions_dict, chain_id_dict, new_pdb, border, tmp_count, verbose=False, save_steps=False)</dt><dd><tt>:param&nbsp;chain:&nbsp;Chain&nbsp;object<br>
+:param&nbsp;homolog_chains_dict:A&nbsp;dictionary&nbsp;with&nbsp;id&nbsp;transformation&nbsp;for&nbsp;homolog&nbsp;interactions<br>
+:param&nbsp;interactions_dict:&nbsp;&nbsp;A&nbsp;dictionary&nbsp;with&nbsp;the&nbsp;chain&nbsp;id&nbsp;from&nbsp;the&nbsp;basic&nbsp;unique&nbsp;chains&nbsp;and&nbsp;the&nbsp;homologs&nbsp;as&nbsp;primary&nbsp;key.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Each&nbsp;one&nbsp;is&nbsp;a&nbsp;dict&nbsp;with&nbsp;sets&nbsp;of&nbsp;numbers&nbsp;(interacting&nbsp;residues)&nbsp;as&nbsp;key&nbsp;and&nbsp;a&nbsp;pointer&nbsp;to&nbsp;a&nbsp;chain&nbsp;object&nbsp;responsible&nbsp;to<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;that&nbsp;interaction<br>
+:param&nbsp;chain_id_dict:&nbsp;A&nbsp;dictionary&nbsp;with&nbsp;the&nbsp;name&nbsp;transformation&nbsp;for&nbsp;chain_id&nbsp;in&nbsp;the&nbsp;new_pdb&nbsp;and&nbsp;the&nbsp;original&nbsp;ones<br>
+:param&nbsp;new_pdb:&nbsp;ProteinStructure&nbsp;object<br>
+:param&nbsp;border:&nbsp;Tupple&nbsp;of&nbsp;residue&nbsp;numbers&nbsp;that&nbsp;need&nbsp;to&nbsp;be&nbsp;interacting&nbsp;with&nbsp;another&nbsp;residues&nbsp;but&nbsp;they&nbsp;arent<br>
+:param&nbsp;tmp_count:&nbsp;a&nbsp;count&nbsp;for&nbsp;the&nbsp;temporal&nbsp;pdb&nbsp;names&nbsp;that&nbsp;track&nbsp;the&nbsp;process&nbsp;everytime&nbsp;a&nbsp;new&nbsp;chain&nbsp;is&nbsp;added<br>
+:return:&nbsp;tmp_count,&nbsp;boolean&nbsp;(&nbsp;if&nbsp;the&nbsp;interaction&nbsp;has&nbsp;correctly&nbsp;been&nbsp;filled)</tt></dd></dl>
+ <dl><dt><a name="-find_common_atoms"><strong>find_common_atoms</strong></a>(chain_fix, chain_mov)</dt><dd><tt>:param&nbsp;chain_fix:&nbsp;Chain&nbsp;object<br>
+:param&nbsp;chain_mov:&nbsp;Chain&nbsp;object<br>
+:return:&nbsp;A&nbsp;two&nbsp;lists&nbsp;of&nbsp;Atom&nbsp;objects&nbsp;prepared&nbsp;to&nbsp;be&nbsp;superimposed.<br>
+That&nbsp;means&nbsp;the&nbsp;atoms&nbsp;are&nbsp;coherent&nbsp;in&nbsp;their&nbsp;position&nbsp;with&nbsp;the&nbsp;other&nbsp;list.</tt></dd></dl>
+ <dl><dt><a name="-good_chain_names"><strong>good_chain_names</strong></a>(pdb_list)</dt><dd><tt>Changed&nbsp;the&nbsp;chain&nbsp;id&nbsp;from&nbsp;the&nbsp;chains&nbsp;of&nbsp;the&nbsp;ProteinStructure&nbsp;objects&nbsp;to&nbsp;have&nbsp;concordancy&nbsp;with&nbsp;their&nbsp;sequence.<br>
+If&nbsp;two&nbsp;chains&nbsp;are&nbsp;equal&nbsp;and&nbsp;are&nbsp;in&nbsp;the&nbsp;same&nbsp;pdb&nbsp;both&nbsp;will&nbsp;be&nbsp;named&nbsp;diferently&nbsp;and&nbsp;it&nbsp;will&nbsp;be&nbsp;tracked&nbsp;down.<br>
+&nbsp;<br>
+:param&nbsp;pdb_list:&nbsp;a&nbsp;list&nbsp;of&nbsp;ProteinStructure&nbsp;objects&nbsp;from&nbsp;each&nbsp;pdb<br>
+:return:&nbsp;a&nbsp;dict&nbsp;with&nbsp;the&nbsp;id&nbsp;equivalence&nbsp;of&nbsp;homo-interactons&nbsp;(two&nbsp;equal&nbsp;chains)</tt></dd></dl>
+ <dl><dt><a name="-is_chain_clashing"><strong>is_chain_clashing</strong></a>(chain_name, pdb)</dt><dd><tt>:param&nbsp;chain_name&nbsp;(str):&nbsp;chain.id&nbsp;of&nbsp;the&nbsp;chain&nbsp;you&nbsp;want&nbsp;to&nbsp;check&nbsp;clashes&nbsp;of<br>
+:param&nbsp;pdb:&nbsp;a&nbsp;ProteinStructure&nbsp;instance<br>
+:return:&nbsp;The&nbsp;position&nbsp;of&nbsp;the&nbsp;chain&nbsp;that&nbsp;clashes&nbsp;with&nbsp;@chain_name&nbsp;on&nbsp;the&nbsp;pdb.childs&nbsp;list,&nbsp;or&nbsp;False&nbsp;(boolean)&nbsp;if&nbsp;no<br>
+clash&nbsp;found</tt></dd></dl>
+ <dl><dt><a name="-new_unused_id"><strong>new_unused_id</strong></a>(used_ids)</dt><dd><tt>:param&nbsp;used_ids:&nbsp;an&nbsp;iterable&nbsp;(list,&nbsp;dict&nbsp;or&nbsp;set)&nbsp;with&nbsp;the&nbsp;keys&nbsp;you&nbsp;don't&nbsp;want<br>
+:return:&nbsp;a&nbsp;new&nbsp;id&nbsp;not&nbsp;in&nbsp;the&nbsp;used_ids</tt></dd></dl>
+ <dl><dt><a name="-reconstruct_macrocomplex"><strong>reconstruct_macrocomplex</strong></a>(PDB_list, homolog_chains_dict={}, verbose=False, steps=False)</dt><dd><tt>Builds&nbsp;a&nbsp;macrocomplex&nbsp;pdb&nbsp;parting&nbsp;from&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;interactions&nbsp;from&nbsp;a&nbsp;pdb&nbsp;(protein&nbsp;structure&nbsp;object)<br>
+&nbsp;:param&nbsp;PDB_list:&nbsp;A&nbsp;list&nbsp;of&nbsp;pdb&nbsp;(Protein&nbsp;Structure&nbsp;objects)<br>
+&nbsp;:param&nbsp;homolog_chains_dict:&nbsp;Default&nbsp;=&nbsp;Empty&nbsp;dict.&nbsp;A&nbsp;dictionary&nbsp;with&nbsp;id&nbsp;transformation&nbsp;for&nbsp;homolog&nbsp;interactions<br>
+&nbsp;:return:&nbsp;A&nbsp;pdb&nbsp;object&nbsp;with&nbsp;all&nbsp;the&nbsp;interactions&nbsp;completed,&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;the&nbsp;change&nbsp;of&nbsp;names&nbsp;done&nbsp;in&nbsp;the&nbsp;process</tt></dd></dl>
+ <dl><dt><a name="-superimpose_pdb_by_chain"><strong>superimpose_pdb_by_chain</strong></a>(chain_fix, chain_mov)</dt><dd><tt>Superimpose&nbsp;the&nbsp;pdb&nbsp;that&nbsp;owns&nbsp;the&nbsp;chain_mov&nbsp;on&nbsp;the&nbsp;pdb&nbsp;that&nbsp;owns&nbsp;the&nbsp;chain_fix<br>
+:param&nbsp;chain_fix:&nbsp;Chain&nbsp;object<br>
+:param&nbsp;chain_mov:&nbsp;Chain&nbsp;object</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>align</strong> = &lt;Bio.pairwise2.align object&gt;</td></tr></table>
+</body></html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module Sequences</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>Sequences</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/seorito/PycharmProjects/SBI/BioMacromplex/Sequences.py">/home/seorito/PycharmProjects/SBI/BioMacromplex/Sequences.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#Exception">builtins.Exception</a>(<a href="builtins.html#BaseException">builtins.BaseException</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="Sequences.html#IncorrectSequenceLetter">IncorrectSequenceLetter</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="Sequences.html#Sequence">Sequence</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="Sequences.html#NucleotideSequence">NucleotideSequence</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="Sequences.html#DNASequence">DNASequence</a>
+</font></dt><dt><font face="helvetica, arial"><a href="Sequences.html#RNASequence">RNASequence</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="Sequences.html#ProteinSequence">ProteinSequence</a>
+</font></dt></dl>
+</dd>
+</dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="DNASequence">class <strong>DNASequence</strong></a>(<a href="Sequences.html#NucleotideSequence">NucleotideSequence</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;DNA&nbsp;class&nbsp;that&nbsp;has&nbsp;<a href="#NucleotideSequence">NucleotideSequence</a>&nbsp;and&nbsp;inherits&nbsp;the&nbsp;same&nbsp;and&nbsp;methods&nbsp;as&nbsp;its&nbsp;parent.&nbsp;Also,&nbsp;<br>
+it&nbsp;has&nbsp;the&nbsp;method&nbsp;transcribe,&nbsp;which&nbsp;returns&nbsp;the&nbsp;RNA&nbsp;version&nbsp;of&nbsp;the&nbsp;sequence&nbsp;atribute.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="Sequences.html#DNASequence">DNASequence</a></dd>
+<dd><a href="Sequences.html#NucleotideSequence">NucleotideSequence</a></dd>
+<dd><a href="Sequences.html#Sequence">Sequence</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="DNASequence-transcribe"><strong>transcribe</strong></a>(self)</dt></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>alphabet</strong> = 'GATC'</dl>
+
+<dl><dt><strong>complement</strong> = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}</dl>
+
+<dl><dt><strong>mw_dict</strong> = {'A': 347.0, 'C': 323.0, 'G': 363.0, 'T': 322.0}</dl>
+
+<dl><dt><strong>start_codons</strong> = ['TTG', 'CTG', 'ATG']</dl>
+
+<dl><dt><strong>stop_codons</strong> = ['TAA', 'TAG', 'TGA']</dl>
+
+<dl><dt><strong>table</strong> = {'AAA': 'K', 'AAC': 'N', 'AAG': 'K', 'AAT': 'N', 'ACA': 'T', 'ACC': 'T', 'ACG': 'T', 'ACT': 'T', 'AGA': 'R', 'AGC': 'S', ...}</dl>
+
+<dl><dt><strong>table_back</strong> = {'A': 'GCT', 'C': 'TGT', None: 'TAA', 'E': 'GAG', 'D': 'GAT', 'G': 'GGT', 'F': 'TTT', 'I': 'ATT', 'H': 'CAT', 'K': 'AAG', ...}</dl>
+
+<hr>
+Methods inherited from <a href="Sequences.html#NucleotideSequence">NucleotideSequence</a>:<br>
+<dl><dt><a name="DNASequence-get_complementary_sequence"><strong>get_complementary_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="DNASequence-translate"><strong>translate</strong></a>(self)</dt></dl>
+
+<hr>
+Methods inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><a name="DNASequence-__add__"><strong>__add__</strong></a>(self, other_sequence)</dt></dl>
+
+<dl><dt><a name="DNASequence-__contains__"><strong>__contains__</strong></a>(self, insider)</dt></dl>
+
+<dl><dt><a name="DNASequence-__eq__"><strong>__eq__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self==value.</tt></dd></dl>
+
+<dl><dt><a name="DNASequence-__getitem__"><strong>__getitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="DNASequence-__hash__"><strong>__hash__</strong></a>(self)</dt><dd><tt>Return&nbsp;hash(self).</tt></dd></dl>
+
+<dl><dt><a name="DNASequence-__init__"><strong>__init__</strong></a>(self, ident, seq)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="DNASequence-__len__"><strong>__len__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="DNASequence-__lt__"><strong>__lt__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self&lt;value.</tt></dd></dl>
+
+<dl><dt><a name="DNASequence-__ne__"><strong>__ne__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self!=value.</tt></dd></dl>
+
+<dl><dt><a name="DNASequence-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="DNASequence-get_identifier"><strong>get_identifier</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="DNASequence-get_length"><strong>get_length</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="DNASequence-get_mw"><strong>get_mw</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="DNASequence-get_sequence"><strong>get_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="DNASequence-has_subsequence"><strong>has_subsequence</strong></a>(self, subseq_object)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="IncorrectSequenceLetter">class <strong>IncorrectSequenceLetter</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Common&nbsp;base&nbsp;class&nbsp;for&nbsp;all&nbsp;non-exit&nbsp;exceptions.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="Sequences.html#IncorrectSequenceLetter">IncorrectSequenceLetter</a></dd>
+<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
+<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="IncorrectSequenceLetter-__init__"><strong>__init__</strong></a>(self, value, id, class_name)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="IncorrectSequenceLetter-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
+<dl><dt><a name="IncorrectSequenceLetter-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><a name="IncorrectSequenceLetter-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="IncorrectSequenceLetter-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="IncorrectSequenceLetter-__reduce__"><strong>__reduce__</strong></a>(...)</dt><dd><tt>helper&nbsp;for&nbsp;pickle</tt></dd></dl>
+
+<dl><dt><a name="IncorrectSequenceLetter-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="IncorrectSequenceLetter-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
+
+<dl><dt><a name="IncorrectSequenceLetter-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="IncorrectSequenceLetter-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#IncorrectSequenceLetter-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
+set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><strong>__cause__</strong></dt>
+<dd><tt>exception&nbsp;cause</tt></dd>
+</dl>
+<dl><dt><strong>__context__</strong></dt>
+<dd><tt>exception&nbsp;context</tt></dd>
+</dl>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__suppress_context__</strong></dt>
+</dl>
+<dl><dt><strong>__traceback__</strong></dt>
+</dl>
+<dl><dt><strong>args</strong></dt>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="NucleotideSequence">class <strong>NucleotideSequence</strong></a>(<a href="Sequences.html#Sequence">Sequence</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;nucleotide&nbsp;class&nbsp;that&nbsp;has&nbsp;<a href="#Sequence">Sequence</a>&nbsp;as&nbsp;parent&nbsp;and&nbsp;inherits&nbsp;the&nbsp;same&nbsp;atributes&nbsp;as&nbsp;the&nbsp;<a href="#Sequence">Sequence</a><br>
+class.&nbsp;<a href="#NucleotideSequence">NucleotideSequence</a>&nbsp;has&nbsp;also&nbsp;the&nbsp;translate&nbsp;method&nbsp;which&nbsp;is&nbsp;also&nbsp;generic&nbsp;and&nbsp;is&nbsp;ment&nbsp;to<br>
+be&nbsp;used&nbsp;by&nbsp;the&nbsp;child&nbsp;classes&nbsp;like&nbsp;<a href="#DNASequence">DNASequence</a>&nbsp;and&nbsp;<a href="#RNASequence">RNASequence</a>&nbsp;and&nbsp;returns&nbsp;the&nbsp;aminoacid&nbsp;sequence<br>
+based&nbsp;on&nbsp;the&nbsp;translation&nbsp;table.<br>
+The&nbsp;get_complementary_sequence&nbsp;is&nbsp;also&nbsp;a&nbsp;generic&nbsp;method&nbsp;for&nbsp;the&nbsp;child&nbsp;clases&nbsp;that&nbsp;returns&nbsp;the<br>
+complementary&nbsp;sequence&nbsp;of&nbsp;the&nbsp;sequence&nbsp;attribute.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="Sequences.html#NucleotideSequence">NucleotideSequence</a></dd>
+<dd><a href="Sequences.html#Sequence">Sequence</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="NucleotideSequence-get_complementary_sequence"><strong>get_complementary_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-translate"><strong>translate</strong></a>(self)</dt></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>alphabet</strong> = ''</dl>
+
+<hr>
+Methods inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><a name="NucleotideSequence-__add__"><strong>__add__</strong></a>(self, other_sequence)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-__contains__"><strong>__contains__</strong></a>(self, insider)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-__eq__"><strong>__eq__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self==value.</tt></dd></dl>
+
+<dl><dt><a name="NucleotideSequence-__getitem__"><strong>__getitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-__hash__"><strong>__hash__</strong></a>(self)</dt><dd><tt>Return&nbsp;hash(self).</tt></dd></dl>
+
+<dl><dt><a name="NucleotideSequence-__init__"><strong>__init__</strong></a>(self, ident, seq)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="NucleotideSequence-__len__"><strong>__len__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-__lt__"><strong>__lt__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self&lt;value.</tt></dd></dl>
+
+<dl><dt><a name="NucleotideSequence-__ne__"><strong>__ne__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self!=value.</tt></dd></dl>
+
+<dl><dt><a name="NucleotideSequence-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="NucleotideSequence-get_identifier"><strong>get_identifier</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-get_length"><strong>get_length</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-get_mw"><strong>get_mw</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-get_sequence"><strong>get_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="NucleotideSequence-has_subsequence"><strong>has_subsequence</strong></a>(self, subseq_object)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ProteinSequence">class <strong>ProteinSequence</strong></a>(<a href="Sequences.html#Sequence">Sequence</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;protein&nbsp;class&nbsp;that&nbsp;has&nbsp;<a href="#Sequence">Sequence</a>&nbsp;as&nbsp;parent&nbsp;and&nbsp;inherits&nbsp;the&nbsp;same&nbsp;atributes&nbsp;and&nbsp;methods&nbsp;as&nbsp;<br>
+<a href="#Sequence">Sequence</a>.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="Sequences.html#ProteinSequence">ProteinSequence</a></dd>
+<dd><a href="Sequences.html#Sequence">Sequence</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>alphabet</strong> = 'ACEDGFIHKMLNQPSRTWVY'</dl>
+
+<dl><dt><strong>mw_dict</strong> = {'A': 89.09, 'C': 121.16, 'D': 133.1, 'E': 147.13, 'F': 165.19, 'G': 75.07, 'H': 155.16, 'I': 131.18, 'K': 146.19, 'L': 131.18, ...}</dl>
+
+<hr>
+Methods inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><a name="ProteinSequence-__add__"><strong>__add__</strong></a>(self, other_sequence)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-__contains__"><strong>__contains__</strong></a>(self, insider)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-__eq__"><strong>__eq__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self==value.</tt></dd></dl>
+
+<dl><dt><a name="ProteinSequence-__getitem__"><strong>__getitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-__hash__"><strong>__hash__</strong></a>(self)</dt><dd><tt>Return&nbsp;hash(self).</tt></dd></dl>
+
+<dl><dt><a name="ProteinSequence-__init__"><strong>__init__</strong></a>(self, ident, seq)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="ProteinSequence-__len__"><strong>__len__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-__lt__"><strong>__lt__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self&lt;value.</tt></dd></dl>
+
+<dl><dt><a name="ProteinSequence-__ne__"><strong>__ne__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self!=value.</tt></dd></dl>
+
+<dl><dt><a name="ProteinSequence-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="ProteinSequence-get_identifier"><strong>get_identifier</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-get_length"><strong>get_length</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-get_mw"><strong>get_mw</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-get_sequence"><strong>get_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ProteinSequence-has_subsequence"><strong>has_subsequence</strong></a>(self, subseq_object)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="RNASequence">class <strong>RNASequence</strong></a>(<a href="Sequences.html#NucleotideSequence">NucleotideSequence</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;RNA&nbsp;class&nbsp;that&nbsp;has&nbsp;<a href="#NucleotideSequence">NucleotideSequence</a>&nbsp;and&nbsp;inherits&nbsp;the&nbsp;same&nbsp;and&nbsp;methods&nbsp;as&nbsp;its&nbsp;parent.&nbsp;Also,&nbsp;<br>
+it&nbsp;has&nbsp;the&nbsp;method&nbsp;transcribe,&nbsp;which&nbsp;returns&nbsp;the&nbsp;DNA&nbsp;version&nbsp;of&nbsp;the&nbsp;sequence&nbsp;atribute.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="Sequences.html#RNASequence">RNASequence</a></dd>
+<dd><a href="Sequences.html#NucleotideSequence">NucleotideSequence</a></dd>
+<dd><a href="Sequences.html#Sequence">Sequence</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="RNASequence-transcribe"><strong>transcribe</strong></a>(self)</dt></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>alphabet</strong> = 'GAUC'</dl>
+
+<dl><dt><strong>complement</strong> = {'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A'}</dl>
+
+<dl><dt><strong>mw_dict</strong> = {'A': 363.0, 'C': 339.0, 'G': 379.0, 'U': 340.0}</dl>
+
+<dl><dt><strong>start_codons</strong> = ['UUG', 'CUG', 'AUG']</dl>
+
+<dl><dt><strong>stop_codons</strong> = ['UAA', 'UAG', 'UGA']</dl>
+
+<dl><dt><strong>table</strong> = {'AAA': 'K', 'AAC': 'N', 'AAG': 'K', 'AAU': 'N', 'ACA': 'T', 'ACC': 'T', 'ACG': 'T', 'ACU': 'T', 'AGA': 'R', 'AGC': 'S', ...}</dl>
+
+<dl><dt><strong>table_back</strong> = {'A': 'GCU', 'C': 'UGU', None: 'UAA', 'E': 'GAG', 'D': 'GAU', 'G': 'GGU', 'F': 'UUU', 'I': 'AUU', 'H': 'CAU', 'K': 'AAG', ...}</dl>
+
+<hr>
+Methods inherited from <a href="Sequences.html#NucleotideSequence">NucleotideSequence</a>:<br>
+<dl><dt><a name="RNASequence-get_complementary_sequence"><strong>get_complementary_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="RNASequence-translate"><strong>translate</strong></a>(self)</dt></dl>
+
+<hr>
+Methods inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><a name="RNASequence-__add__"><strong>__add__</strong></a>(self, other_sequence)</dt></dl>
+
+<dl><dt><a name="RNASequence-__contains__"><strong>__contains__</strong></a>(self, insider)</dt></dl>
+
+<dl><dt><a name="RNASequence-__eq__"><strong>__eq__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self==value.</tt></dd></dl>
+
+<dl><dt><a name="RNASequence-__getitem__"><strong>__getitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="RNASequence-__hash__"><strong>__hash__</strong></a>(self)</dt><dd><tt>Return&nbsp;hash(self).</tt></dd></dl>
+
+<dl><dt><a name="RNASequence-__init__"><strong>__init__</strong></a>(self, ident, seq)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="RNASequence-__len__"><strong>__len__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="RNASequence-__lt__"><strong>__lt__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self&lt;value.</tt></dd></dl>
+
+<dl><dt><a name="RNASequence-__ne__"><strong>__ne__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self!=value.</tt></dd></dl>
+
+<dl><dt><a name="RNASequence-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="RNASequence-get_identifier"><strong>get_identifier</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="RNASequence-get_length"><strong>get_length</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="RNASequence-get_mw"><strong>get_mw</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="RNASequence-get_sequence"><strong>get_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="RNASequence-has_subsequence"><strong>has_subsequence</strong></a>(self, subseq_object)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="Sequences.html#Sequence">Sequence</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Sequence">class <strong>Sequence</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;sequence&nbsp;abstract&nbsp;class,&nbsp;not&nbsp;ment&nbsp;to&nbsp;be&nbsp;used&nbsp;which&nbsp;constitudes&nbsp;the&nbsp;base&nbsp;for&nbsp;the&nbsp;other&nbsp;<br>
+sequence&nbsp;child&nbsp;classes&nbsp;line&nbsp;Protein&nbsp;and&nbsp;Nucleotide&nbsp;classes.&nbsp;It&nbsp;has&nbsp;the&nbsp;private&nbsp;attributes<br>
+__identifier,&nbsp;and&nbsp;__sequence.&nbsp;As&nbsp;this&nbsp;attributes&nbsp;are&nbsp;private&nbsp;the&nbsp;<a href="#Sequence-get_identifier">get_identifier</a>()&nbsp;and&nbsp;<br>
+<a href="#Sequence-get_sequence">get_sequence</a>()&nbsp;are&nbsp;ment&nbsp;to&nbsp;be&nbsp;used&nbsp;to&nbsp;obtain&nbsp;the&nbsp;value&nbsp;of&nbsp;this&nbsp;attributes.&nbsp;Also&nbsp;the&nbsp;general<br>
+method&nbsp;of&nbsp;<a href="#Sequence-get_length">get_length</a>(),&nbsp;get_subsequence(another_sequence_object)&nbsp;and&nbsp;<a href="#Sequence-get_mw">get_mw</a>()&nbsp;are&nbsp;disponible.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Sequence-__add__"><strong>__add__</strong></a>(self, other_sequence)</dt></dl>
+
+<dl><dt><a name="Sequence-__contains__"><strong>__contains__</strong></a>(self, insider)</dt></dl>
+
+<dl><dt><a name="Sequence-__eq__"><strong>__eq__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self==value.</tt></dd></dl>
+
+<dl><dt><a name="Sequence-__getitem__"><strong>__getitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="Sequence-__hash__"><strong>__hash__</strong></a>(self)</dt><dd><tt>Return&nbsp;hash(self).</tt></dd></dl>
+
+<dl><dt><a name="Sequence-__init__"><strong>__init__</strong></a>(self, ident, seq)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="Sequence-__len__"><strong>__len__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Sequence-__lt__"><strong>__lt__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self&lt;value.</tt></dd></dl>
+
+<dl><dt><a name="Sequence-__ne__"><strong>__ne__</strong></a>(self, other_sequence)</dt><dd><tt>Return&nbsp;self!=value.</tt></dd></dl>
+
+<dl><dt><a name="Sequence-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="Sequence-get_identifier"><strong>get_identifier</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Sequence-get_length"><strong>get_length</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Sequence-get_mw"><strong>get_mw</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Sequence-get_sequence"><strong>get_sequence</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Sequence-has_subsequence"><strong>has_subsequence</strong></a>(self, subseq_object)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>alphabet</strong> = set()</dl>
+
+</td></tr></table></td></tr></table>
+</body></html>
