@@ -436,7 +436,7 @@ class PymolImageThread(threading.Thread):
         going to the next line.
         """
         if self.is_image:
-            result = subprocess.run(["python", "pymolmanager.py", "%s" % self.pdb])
+            result = subprocess.run(["python",BioMacromplex.module_path+"/pymolmanager.py", "%s" % self.pdb])
         else:
             try:
                 result = subprocess.run(["pymol", "%s" % self.pdb])
