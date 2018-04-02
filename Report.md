@@ -1,6 +1,22 @@
+
+\begin{center}
+{\huge Interact Maker}
+\end{center}
+
 # Introduction
 
+Enzymes are very efficient catalysts for biochemical reactions, they provide the suficient speed to the diverse needed reactions in living organisms to keep them functionin. Most enzymes are proteins but RNA can also fill catalytic functions.
+As life has become more complex so do the metabolic pathways and the enzymes necesssary to follow those big reaction chains, adding more steps in the pathways and more enzymes. Macro-complexes, then, originate as a way of clustering enzymes to speed up the chain of reactions that the metabolites need to go through. Thus, understanding how macro-complexes are structured and how enzymes interact became a key feature to understand.
+
+Another example of the importance of enzyme macro-complexes is the allosteric between the enzymes in the complex. This adds up a whole world of interactions and behaviours of the enzymes depending on different conditions. One remarkable case is the hemoglobin, that each chain regulates the affinity to oxigen of the others.
+
+Independently of the enzymes most of the proteins gain their functionallity when interacting with other proteins as dimers or trimers or any with any number of proteins. In this regard, protein complexes in the interactome provide practical drug targets for drug discovery, as by impeding the formation of the complex one can avoid the activation of its components.
+
+Additionally, macro-complexes are key in the structure of organisms being necesary to build large protein entities that sustain the shape and architecture of their bodys. Such are microtubules or actine filaments, collagen or even the capsides of virus.
+
+
 The objective of the software provided is to reconstruct pdb's from interactions. This feature is interesting for example when you want to build a huge macrocomplex such a virus capside or similar because they are extremely difficult to crystallize, so, usually, the approach followed is to crystallize only the asymmetrical part and then build the biological assembly using that.
+
 
 
 # Index
@@ -17,6 +33,16 @@ The objective of the software provided is to reconstruct pdb's from interactions
 		3.5 - Sequences.py
 
 	4- Gui explanation
+	5- Further improvements
+	6- References
+
+
+
+
+
+
+
+
 
 
 
@@ -26,7 +52,9 @@ The aim of this project is to build a protein Macro-complex using as input the p
 
 The idea behind is the following: if we choose one interaction pair as the starting template, we can then place the rest of the chains by superposition. Due to the fact that, in a macro-complex, at least another interaction pair has the same chain, then we can align those chains and after that, move the different chain responsible of the interaction to the template that we are building (Image 1 & 2). Just like a puzzle, if we keep aligning the similar proteins and moving the chains from the interaction to the template we can eventually obtain the correct macro-complex.
 
-![Image 1](antes.png) | ![Image 1](despues.png)
+							Image 1									Image 2
+ 
+>![Img1](antes.png "Title"){width=50.3%}        ![Img2](despues.png "Image 2"){width=42%}
 
 To obtain the correct structure using this approach we need to know which proteins have to be aligned and in which order, to avoid making unnecessary clashes by adding more than one time the same chain, and also know when to stop adding chains to that protein because it already has all its interactions.
 
@@ -120,7 +148,15 @@ For example our GUI currently has two interfaces, one for running the PDB aligne
 
 Our GUI also features the capability to launch the jobs as threats, a system to interact with them and a way to avoid spanning multiple threads and to avoid leaving dead processes running in the background.
 
-# 5 References:
+# 5 Further Improvements
+
+Due to difficulties met in our approach we could not accomplish the optimization desired and the script escalates very badly. In the computers tested, a reconstruction of a viric capsid of 200 chains lasts about 2 hours to be finished (2:17:23). Thus, if we had more time to improve the program, the main priority would be the optimization. The algorithm checks clashes everytime we add a chain because sometimes, specially in complexes with asymmetric interactions between identical chains, it adds a wrong one that produces clashes.
+
+Additionally, we wanted to perform an energy minimilization using an Amber force field as to evaluate (check energy levels) and improvement of the model. We did not include this in the script due to problems in the instalation of the external program.
+Depending on the type of molecule (Prot, DNA, RNA or mixed) it needs a different instalation so it limited the versatility of the script.
+If given more time we would also try to perform an energy optimization, ideally done in python as a module of out package.
+
+# 6 References
 
 Since our project needed a way to determine if two residues where interacting or to check if a clash had been produced, we used the following values from the following references:
 
@@ -131,3 +167,7 @@ Jeffrey, George A.; An introduction to hydrogen bonding, Oxford University Press
 To check Clashes we use 1.5 Amstrongs, which is smaller than the N,C and O vVnderwalls radius. This means that if we found several atoms at this distance they must be clashing.
 
 Values of Vanderwalls radius taken from: http://ww2.chemistry.gatech.edu/~lw26/structure/molecular_interactions/mol_int.html
+
+Nelson, David L. (David Lee), 1942-. (2008). Lehninger principles of biochemistry. New York :W.H. Freeman,
+
+Kuznetsova, I. M., Turoverov, K. K., & Uversky, V. N. (2014). What Macromolecular Crowding Can Do to a Protein. International Journal of Molecular Sciences, 15(12), 23090–23140.
