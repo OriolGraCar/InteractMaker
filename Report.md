@@ -1,4 +1,3 @@
-
 \begin{center}
 {\huge Interact Maker}
 \end{center}
@@ -13,7 +12,6 @@ Another example of the importance of enzyme macro-complexes is the allosteric be
 Independently of the enzymes most of the proteins gain their functionallity when interacting with other proteins as dimers or trimers or any with any number of proteins. In this regard, protein complexes in the interactome provide practical drug targets for drug discovery, as by impeding the formation of the complex one can avoid the activation of its components.
 
 Additionally, macro-complexes are key in the structure of organisms being necesary to build large protein entities that sustain the shape and architecture of their bodys. Such are microtubules or actine filaments, collagen or even the capsides of virus.
-
 
 The objective of the software provided is to reconstruct pdb's from interactions. This feature is interesting for example when you want to build a huge macrocomplex such a virus capside or similar because they are extremely difficult to crystallize, so, usually, the approach followed is to crystallize only the asymmetrical part and then build the biological assembly using that.
 
@@ -35,14 +33,6 @@ The objective of the software provided is to reconstruct pdb's from interactions
 	4- Gui explanation
 	5- Further improvements
 	6- References
-
-
-
-
-
-
-
-
 
 
 
@@ -89,47 +79,54 @@ Our program will be able to correctly build this structure but as the terminatio
 
 *4. When not all the posible interactions are filled in the real protein*
 
-In some cases happens that, if one chain in the macrocomplex have an interaction that the rest of chains of the same type does not have. As our program forces the condition, all residues found to be interacting must be interacting in the final structure, it will reproduce that interaction for all the chains. However, this is a minoritary case which solution will be very hard to implement and will significally increase the complexity of the output and the computational time since it will requiere to make a recursion tree.
+In some cases it happens that one chain in the macrocomplex has an interaction that the rest of the chains of the same type does not have. As our program forces the condition, all residues found to be interacting must be interacting in the final structure, so it will reproduce that interaction for all the chains. However, this is a minoritary case and its solution would be very hard to implement and would significally increase the complexity of the output and the computational time since it would require to make a recursion tree.
+
+
+
+
+
+
+
 
 # 3. BioMacromplex
 
-The package contains all the class definitions and functions needed to load, edit and work with pdbs. It also have the functions to manage pymol and to do the reconstructing process. The following is a summary of the capabilities of our package, to see an explanation of how to use each class and function check the Doc folder.
+The package contains all the class definitions and functions needed to load, edit and work with pdbs. It also has the functions to manage pymol and to do the reconstruction process. The following is a summary of the capabilities of our package, to see an explanation of how to use each class and function check the Doc folder.
 
 ## 3.1 PDB.py
 
-This is the file that contains all the class definitions to load pdbs and work with them. It's build in a similar way than the pdb parser of the Biopython modul, so it can easy interact with other functions provided there, such as the Superimposer module, but it's more complete than the Biopython one. That's also the reason for which this part was build, because when we were developing our solution we found ourselves limited by how Biopython was build.
+This is the file that contains all the class definitions to load pdbs and work with them. It was built in a similar way to the pdb parser of the Biopython module, so it can easily interact with other functions provided there, such as the Superimposer module, but it's more complete than the Biopython one. That's also the reason for which this part was built, because when we were developing our solution we found ourselves limited by how Biopython was built.
 
 Advantatges:
 
 Here we will state the advantages of using our pdb parser (PDB.py) rather than the biopython one.
 
-1. In addition to our functions it also has the same functions names than the Biopython pdb parser, and it provides the data in the same format, this allows our pdb parser to interact directly with the other modules from biopython without having to chance anything.
+1. In addition to our functions it also has the same function names than the Biopython pdb parser, and it provides the data in the same format. This allows our pdb parser to interact directly with the other modules from biopython without having to change anything.
 
 2. It gives a more flexible tool to rename and handle sequence names, and also a function to filter atoms that the biopython does not provide.
 
-3. It's able to handle the Hetatoms without problem. This is a major improvement because the biopython lacks this capability which in our opinion is essential, because for most of the cases when you want to work with a protein that has hetatoms you are usually also interested in those atoms, such as the ATP, FADH or metallic ions. This addition is not only interesting for our project (to be able to place the hetatoms in our final macrocomplex) but also to work with pdbs in the future.
+3. It's able to handle the Hetatoms without any problem. This is a major improvement because the biopython lacks this capability, which in our opinion is essential because for most of the cases when you want to work with a protein that has hetatoms you are usually also interested in those atoms, such as the ATP, FADH or metallic ions. This addition is not only interesting for our project (to be able to place the hetatoms in our final macrocomplex) but also to work with pdbs in the future.
 
-4. It has a more clear inheritance hierarchy than the biopython, because you can directly initialize the object meanwhile the biopython is built in such a way that the objects are made by the parser so you cannot interact with them directly. This feature gives more flexibility to our parser.
+4. It has a clearer inheritance hierarchy than the biopython because you can directly initialize the object meanwhile the biopython is built in such a way that the objects are made by the parser so you cannot interact with them directly. This feature gives more flexibility to our parser.
 
 Disadvantatges:
 
-Despite being flexible and having some additional features our parser is not perfect because it's not able to perform some of the things than the biopython can.
+Despite being flexible and having some additional features, our parser is not perfect because it's not able to perform some of the things that the biopython can.
 Those limitations are the following:
 
-1. Our parser is only able to work with pdb files meanwhile the biopython can also use other formats such as .mmcif, That's one of the reasons for which biopython doesn't allow you to directly declare the structure object without the parser.
+1. Our parser is only able to work with pdb files meanwhile the biopython can also use other formats such as .mmcif. That's one of the reasons for which biopython doesn't allow you to directly declare the structure object without the parser.
 
-2. Our parser does not save any information of the header. This can be easily implemented in the future, but has it was not necessary for our project and we had a limited amount of time we have leave it for the future.
+2. Our parser does not save any information of the heading. This can be easily implemented in the future, but as it was not necessary for our project, and we had a limited amount of time, we had to leave it for the future.
 
 ## 3.2 PDBaligner.py
 
 This is the core part of our project since it  has all the functions needed to build a new pdb from its interactions.
-We have tried to divide it in different independent functions rather than a giant one to give them more flexibility to work with them in other projects. For example we made a function to check the interactions that is independent from the one that superpose the chain based in those interactions.
+We have tried to divide it in different independent functions rather than a giant one to give them more flexibility to work with them in other projects. For instance, we made a function to check the interactions that are independent of the one that superposes the chain based on those interactions.
 
 As stated before, the information about the functions usage can be found in the Doc folder.
 
 ## 3.3 PDB_split.py
 
-Script that divides a pdb into it's different interactions pairs. It does not have a biological interest but is useful to make sample input data from existing pdbs in order to test the program.
+Script that divides a pdb into it's different interactions pairs. It does not have a biological interest, but it is useful to make sample input data from existing pdbs in order to test the program.
 
 ## 3.4 pymolmanager.py
 
@@ -137,14 +134,14 @@ Simple script that launches the cmd of pymol to make images.
 
 ## 3.5 Sequences.py
 
-Script made as part of the exercises of the python subject. Is used for the PDB.py to make sequence objects from the found chains in order to have a closer interaction with them such as checking the molecular weight.
+Script made as part of the exercises of the python subject. It is used for the PDB.py to make sequence objects from the found chains in order to have a closer interaction with them, such as checking the molecular weight.
 
 # 4 Graphical User interface (GUI)
 
-We wanted to provide a GUI that was not only functional but also structured in such a way to make it easier to escalate and also easier to reuse for other projects. For this reason the GUI is splitted in different classes, one for each frame in the GUI, in order to make them independent. The hierarchy is the following: Main app > Individual Frames > Widgets of each frame. All the individual frames are also built following the same structure in the class declaration, that is:
+We wanted to provide a GUI that was not only functional but also structured in such a way that it would be easier to escalate and also easier to reuse for other projects. For this reason the GUI is splitted in different classes, one for each frame in the GUI, in order to make them independent. The hierarchy is the following: Main app > Individual Frames > Widgets of each frame. All the individual frames are also built following the same structure in the class declaration, that is:
 Main variables (such as who is the parent and who is the main app) > widgets declaration > widgets placement inside the frame > other variables.
 
-For example our GUI currently has two interfaces, one for running the PDB aligner and the other for running the PDB_split, but more "modules" can be easily added, for example a interface to validate the structures or to run MD simulations.
+For example, our GUI currently has two interfaces, one for running the PDB aligner and the other for running the PDB_split, but more "modules" can be easily added, such as an interface to validate the structures or to run MD simulations.
 
 Our GUI also features the capability to launch the jobs as threats, a system to interact with them and a way to avoid spanning multiple threads and to avoid leaving dead processes running in the background.
 
@@ -156,7 +153,7 @@ Additionally, we wanted to perform an energy minimilization using an Amber force
 Depending on the type of molecule (Prot, DNA, RNA or mixed) it needs a different instalation so it limited the versatility of the script.
 If given more time we would also try to perform an energy optimization, ideally done in python as a module of out package.
 
-# 6 References
+# 6 References:
 
 Since our project needed a way to determine if two residues where interacting or to check if a clash had been produced, we used the following values from the following references:
 
@@ -164,10 +161,6 @@ To check Hidrogen bond distance we use 3.5 A (middle point), taken from:
 Martz, Eric; Help, Index & Glossary for Protein Explorer, http://www.umass.edu/microbio/chime/pe_beta/pe/protexpl/igloss.htm
 Jeffrey, George A.; An introduction to hydrogen bonding, Oxford University Press, 1997.
 
-To check Clashes we use 1.5 Amstrongs, which is smaller than the N,C and O vVnderwalls radius. This means that if we found several atoms at this distance they must be clashing.
+To check Clashes we use 1.5 Amstrongs, which is smaller than the N,C and O vVnderwalls radius. This means that if we find several atoms at this distance they must be clashing.
 
 Values of Vanderwalls radius taken from: http://ww2.chemistry.gatech.edu/~lw26/structure/molecular_interactions/mol_int.html
-
-Nelson, David L. (David Lee), 1942-. (2008). Lehninger principles of biochemistry. New York :W.H. Freeman,
-
-Kuznetsova, I. M., Turoverov, K. K., & Uversky, V. N. (2014). What Macromolecular Crowding Can Do to a Protein. International Journal of Molecular Sciences, 15(12), 23090–23140.
