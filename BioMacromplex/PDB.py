@@ -87,7 +87,7 @@ class ProteinStructure(BASE):
                     ·Residue
                         ·Atom
             It inherits the attributes from BASE with some changes: its childs are a list of chain objects"""
-    def __init__(self, id ,pdb_file):
+    def __init__(self, id ,pdb_file = None):
         self.hetatm_dict = None
         self.childs = self._init_chains(pdb_file)
         BASE.__init__(self, id)
@@ -98,6 +98,8 @@ class ProteinStructure(BASE):
     def _init_chains(self, pdb_file):
         """Private method to generate and return the child chain objects for initialization"""
         c = []
+        if not pdb_file:
+            return c
         pdb, het = self._read_pdb(pdb_file)
         if het:
             self.hetatm_dict = dict()
@@ -108,6 +110,7 @@ class ProteinStructure(BASE):
                 self.hetatm_dict[chain] = c[len(c)-1].hetatm
         return c
     def _read_pdb(self, pdb_file):
+        """Private method to parse the pdb file into a dict (or two) to initialize the structure"""
         cols = list()
         pdb = dict()
         het_pdb = dict()
@@ -251,7 +254,7 @@ class ProteinStructure(BASE):
     def remove_chain(self, chain_id):
         """Removes a chain from the structure."""
         self.childs.remove(chain_id)
-        self.child_dict = self._get_childs_dict(self.childs)
+        self.restablish_dict()
     def find_gaps(self):
         """Check if Structure has gaps in its chains. Only looks if the residu num is consecutively."""
         for chain in self:
@@ -569,7 +572,5 @@ class Atom(BASE):
 
 if __name__ == '__main__':
     '''El sitio de las pruebas <3'''
-    import BioMacromplex
-    home = BioMacromplex.module_path
-    PDB = ProteinStructure('..', '../pdb/1a3n.pdb')
-    PDB.id
+    PDB = ProteinStructure('id')
+    print('KK')
