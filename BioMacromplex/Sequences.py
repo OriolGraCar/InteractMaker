@@ -98,11 +98,17 @@ class ProteinSequence(Sequence):
 	A protein class that has Sequence as parent and inherits the same atributes and methods as 
 	Sequence.
 	'''
-	alphabet = 'ACEDGFIHKMLNQPSRTWVY'
+	alphabet = 'ACEDGFIHKMLNQPSRTWVYX'
 	mw_dict = {'A': 89.09, 'C': 121.16, 'E': 147.13, 'D': 133.1, 'G': 75.07, 'F': 165.19, 
 				   'I': 131.18, 'H': 155.16, 'K': 146.19, 'M': 149.21, 'L': 131.18, 'N': 132.12,
 				   'Q': 146.15, 'P': 115.13, 'S': 105.09, 'R': 174.2, 'T': 119.12, 'W': 204.23,
-				   'V': 117.15, 'Y': 181.19}
+				   'V': 117.15, 'Y': 181.19, 'X':0.0}
+	def __init__(self, ident, sequence, full_analysis = False):
+		self.analysis_utils = False
+		super().__init__(ident, sequence)
+		if full_analysis:
+			from Bio.SeqUtils.ProtParam import ProteinAnalysis as PA
+			self.analysis_utils = PA(sequence)
 class DNASequence(NucleotideSequence):
 	'''
 	A DNA class that has NucleotideSequence and inherits the same and methods as its parent. Also, 
