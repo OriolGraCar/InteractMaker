@@ -352,7 +352,7 @@ class ReconstructComplex(threading.Thread):
                 if self.interactions_checked:
                     if self.confirmed_residues + self.lax_residues < len(border) or (self.lax_residues > self.confirmed_residues and self.confirmed_residues < (len(border) / 2)):  # If we have un-interacting atoms or the fitting was too bad. /how to go back and redo?/
                         self.tmp_count, ok = cmake.fill_interaction(chain, self.homo_chains, self.interactions_dict, self.chain_id_dict, self.new_pdb, border, self.tmp_count, verbose=True, save_steps=True)
-                        self.master.update_proteins([(self.new_pdb, 'tmp/part%s.pdb' % self.tmp_count)])
+                        self.master.update_proteins([(self.new_pdb, 'tmp/part%s.pdb' % (self.tmp_count-1))])
                         self.master.output = self.new_pdb
                     self.completed_borders += 1
                     self.interactions_checked = False
